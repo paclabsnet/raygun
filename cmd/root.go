@@ -1,6 +1,5 @@
 /*
-Copyright © 2022 John Brothers <johnbr@paclabs.net>
-
+Copyright © 2023 John Brothers <johnbr@paclabs.net>
 */
 package cmd
 
@@ -10,18 +9,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
+var verbose bool
+var debug bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "raygun",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "A tool for testing .rego logic",
+	Long: `A tool for testing Rego rule logic, by executing a series of tests 
+	against it and verifying we get back the expected results`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
@@ -45,7 +41,7 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Debug")
 }
-
-
