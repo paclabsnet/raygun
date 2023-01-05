@@ -1,16 +1,13 @@
 package suite_runner
 
 import (
-	"fmt"
+	"errors"
 	"os"
+	"raygun/log"
+	"raygun/opa"
+	"raygun/ray_parser"
+	"raygun/types"
 )
-
-var verbose bool
-var debug bool
-
-type TestDetails struct {
-	Name string
-}
 
 /*
 	// Set the current working directory for the executable to "/tmp"
@@ -24,59 +21,59 @@ type TestDetails struct {
 	}
 */
 
-func Run(suite string) error {
+func Run(suiteFilename string) error {
+	log.Verbose("Running test suite: %s\n", suiteFilename)
 
-	if verbose || debug {
-		fmt.Printf("Running test suite: %s\n", suite)
-	}
+	parser := ray_parser.New()
 
-	suite_context, test_files, err := parse_suite_file(suite)
-
-	if err != nil {
-		return err
-	}
-
-	if verbose || debug {
-		fmt.Printf("Using test files: %v\n", test_files)
-	}
-
-	if verbose || debug {
-		fmt.Printf("launching OPA with the appropriate rules and data\n")
-	}
-
-	opa_context, err := launch_opa(suite_context)
+	suite, err := parser.ParseSuiteFile(suiteFilename)
 
 	if err != nil {
 		return err
 	}
 
-	if len(test_files) == 0 {
-		fmt.Printf("ERROR: no test files found\n")
+	if len(suite.RaygunTestFiles) == 0 {
+		log.Error("no test files found\n")
 		return nil
 	}
+	log.Verbose("Using test files: %v\n", suite.RaygunTestFiles)
 
-	if verbose || debug {
-		fmt.Printf("iterating over the test files and executing them\n")
+	log.Verbose("launching OPA with the appropriate rules and data\n")
+
+	opa := opa.DefineRuntime(suite.RegoSourcePath, suite.OpaData)
+
+	err = opa.Start()
+
+	if err != nil {
+		return err
 	}
 
-	for _, test_file := range test_files {
+	log.Verbose("iterating over the test files and executing them\n")
 
-		test_details, err := parse_test_file(test_file, suite_context)
+	for _, test_file := range suite.RaygunTestFiles {
+
+		testDetails, err := parser.ParseTestFile(test_file, suite)
 
 		if err != nil {
 			return err
 		}
 
-		outcome, failure_reason, err := run_test(test_details, opa_context)
+		runner, err := build_test_runner(testDetails, opa)
+
+		if err != nil {
+			return err
+		}
+
+		outcome, failure_reason, err := runner.ExecuteTest()
 
 		if err != nil {
 			return err
 		}
 
 		if outcome == "PASS" {
-			fmt.Printf("Test %s : PASS\n", test_details.Name)
+			log.Normal("Test %s : PASS\n", testDetails.Name)
 		} else {
-			fmt.Printf("test %s : FAIL: %s\n", test_details.Name, failure_reason)
+			log.Normal("test %s : FAIL: %s\n", testDetails.Name, failure_reason)
 		}
 
 	}
@@ -85,19 +82,21 @@ func Run(suite string) error {
 
 }
 
-func run_test(test TestDetails, opa_context map[string]interface{}) (string, string, error) {
+func build_test_runner(details *types.TestDetails, opaConfig *opa.OpaConfig) (*TestRunner, error) {
+	return nil, errors.New("not_implemented")
+}
+
+func run_test(test *types.TestDetails, opa_context map[string]interface{}) (string, string, error) {
 
 	return "FAIL", "Not implemented yet", nil
 
 }
 
-func parse_test_file(test_file os.FileInfo, suite_context map[string]interface{}) (TestDetails, error) {
+func parse_test_file(test_file os.FileInfo, suite_context map[string]interface{}) (*types.TestDetails, error) {
 
-	var td TestDetails
+	td := types.NewTestDetails(test_file.Name())
 
-	td.Name = test_file.Name()
-
-	return td, nil
+	return td, errors.New("not_implemented")
 }
 
 func launch_opa(suite_context map[string]interface{}) (map[string]interface{}, error) {
@@ -112,12 +111,4 @@ func parse_suite_file(suite string) (map[string]interface{}, []os.FileInfo, erro
 	test_file_array := make([]os.FileInfo, 0)
 
 	return suite_ctx, test_file_array, nil
-}
-
-func SetVerbose(v bool) {
-	verbose = v
-}
-
-func SetDebug(d bool) {
-	debug = d
 }

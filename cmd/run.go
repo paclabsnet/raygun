@@ -6,18 +6,17 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"raygun/config"
+	"raygun/log"
 	"raygun/suite_runner"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-const RAYGUN = ".raygun"
-const RAYSUITE = ".raysuite"
-
 // runCmd represents the run command
 var runCmd = &cobra.Command{
-	Use:   fmt.Sprintf("run  <test directories or %s/%s files>", RAYGUN, RAYSUITE),
+	Use:   fmt.Sprintf("run  <test directories or %s files>", config.RaysuiteExtension),
 	Short: "Execute the .raygun and .raysuite files in the specified directory",
 	Long: `Execute the .raygun test cases and .raysuite test suites specified
 	via the command line directives`,
@@ -38,15 +37,9 @@ var runCmd = &cobra.Command{
 		}
 
 		if len(test_suites) > 0 {
-			if verbose {
-				fmt.Printf("Test Suites found, Ignoring individual test files\n")
-			}
-
-			fmt.Printf("Suites to execute: %v\n", test_suites)
+			log.Verbose("Test Suites to execute: %v\n", test_suites)
 
 			for _, suite := range test_suites {
-				suite_runner.SetDebug(debug)
-				suite_runner.SetVerbose(verbose)
 				err := suite_runner.Run(suite)
 				if err != nil {
 					fmt.Printf("Error executing suite: %s\n", suite)
@@ -55,8 +48,8 @@ var runCmd = &cobra.Command{
 			}
 
 		} else {
-			fmt.Printf("Test Files to execute: %v\n", test_files)
-			fmt.Printf("WARNING: ignoring test files for the moment, only implementing test suites\n")
+			log.Normal("Not Implemented: Test Files to execute: %v\n", test_files)
+			log.Warning("WARNING: ignoring test files for the moment, only implementing test suites\n")
 		}
 
 		return nil
@@ -94,7 +87,7 @@ func findRaygunFiles(entities []string) ([]string, []string, error) {
 		}
 
 		if verbose {
-			fmt.Printf("Directories in which to look for %s / %s files: %v\n", RAYGUN, RAYSUITE, directories)
+			fmt.Printf("Directories in which to look for %s files: %v\n", config.RaysuiteExtension, directories)
 		}
 
 		for _, dir := range directories {
@@ -138,11 +131,11 @@ func getFileExtension(entity string) string {
 }
 
 func isRaysuiteFile(entity string) bool {
-	return getFileExtension(entity) == RAYSUITE
+	return getFileExtension(entity) == config.RaysuiteExtension
 }
 
 func isRaygunFile(entity string) bool {
-	return getFileExtension(entity) == RAYGUN
+	return getFileExtension(entity) == config.RaygunExtension
 }
 
 func init() {
