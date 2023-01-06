@@ -1,15 +1,15 @@
 package opa
 
 import (
-	"errors"
 	"raygun/config"
+	"raygun/log"
 )
 
 type OpaConfig struct {
 	opa_port            uint16
 	opa_executable_path string
 	opa_data            string
-	rego_source_path    string
+	rego_source_files   []string
 }
 
 /*
@@ -19,11 +19,11 @@ type OpaConfig struct {
 
 */
 
-func DefineRuntime(rego_source_path string, opa_data *string) *OpaConfig {
+func DefineRuntime(rego_source_files []string, opa_data *string) *OpaConfig {
 
 	o := &OpaConfig{
-		opa_port:         config.DefaultOpaPort,
-		rego_source_path: rego_source_path,
+		opa_port:          config.DefaultOpaPort,
+		rego_source_files: rego_source_files,
 	}
 
 	if config.DefaultOpaExecutablePath != nil {
@@ -39,6 +39,16 @@ func DefineRuntime(rego_source_path string, opa_data *string) *OpaConfig {
 	return o
 }
 
-func (launcher *OpaConfig) Start() error {
-	return errors.New("not_implemented")
+func (opa *OpaConfig) Start() error {
+
+	log.Warning("OPA Start not implemented, faking for now to test the rest of the system")
+
+	return nil
+
+}
+
+func (opa *OpaConfig) Stop() error {
+
+	log.Warning("OPA Stop not implemented, faking for now to test the rest of the system")
+	return nil
 }

@@ -1,0 +1,16 @@
+#Name
+	Test1
+#Expects
+{
+	"allow" : true
+}
+
+#Input
+{
+	"name" : "john"
+}
+
+#Rule URL Path
+	/raygun/simple/test1
+
+

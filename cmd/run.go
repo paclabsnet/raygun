@@ -6,10 +6,10 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"raygun/config"
 	"raygun/log"
 	"raygun/suite_runner"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -21,6 +21,9 @@ var runCmd = &cobra.Command{
 	Long: `Execute the .raygun test cases and .raysuite test suites specified
 	via the command line directives`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+
+		config.Debug = debug
+		config.Verbose = verbose
 
 		var entities = make([]string, 0)
 
@@ -40,9 +43,13 @@ var runCmd = &cobra.Command{
 			log.Verbose("Test Suites to execute: %v\n", test_suites)
 
 			for _, suite := range test_suites {
-				err := suite_runner.Run(suite)
+
+				path := filepath.Dir(suite)
+				filename := filepath.Base(suite)
+
+				err := suite_runner.Run(path, filename)
 				if err != nil {
-					fmt.Printf("Error executing suite: %s\n", suite)
+					log.Error("Error executing suite: %s", suite)
 					return err
 				}
 			}
@@ -68,7 +75,7 @@ func findRaygunFiles(entities []string) ([]string, []string, error) {
 		file_info, err := os.Stat(entity)
 
 		if err != nil {
-			fmt.Printf("unable to find file/directory information about: %s\n", entity)
+			log.Error("unable to find file/directory information about: %s", entity)
 			return nil, nil, err
 		}
 
@@ -81,21 +88,19 @@ func findRaygunFiles(entities []string) ([]string, []string, error) {
 			} else if isRaysuiteFile(entity) {
 				test_suites = append(test_suites, entity)
 			} else {
-				fmt.Printf("Ignoring non-raygun file: %s\n", entity)
+				log.Debug("Ignoring non-raygun file: %s", entity)
 			}
 
 		}
 
-		if verbose {
-			fmt.Printf("Directories in which to look for %s files: %v\n", config.RaysuiteExtension, directories)
-		}
+		log.Verbose("Directories in which to look for %s files: %v", config.RaysuiteExtension, directories)
 
 		for _, dir := range directories {
 
 			files_in_dir, err := os.ReadDir(dir)
 
 			if err != nil {
-				fmt.Printf("Unable to open directory %s to look for test files\n", dir)
+				log.Error("Unable to open directory %s to look for test files", dir)
 				return nil, nil, err
 			}
 
@@ -116,26 +121,18 @@ func findRaygunFiles(entities []string) ([]string, []string, error) {
 
 	}
 
+	log.Debug("run: test_files: %v", test_files)
+	log.Debug("run: test_suites: %v", test_suites)
+
 	return test_files, test_suites, nil
 }
 
-func getFileExtension(entity string) string {
-
-	dotIndex := strings.LastIndex(entity, ".")
-
-	if dotIndex > 0 {
-		return entity[dotIndex:]
-	}
-
-	return entity
-}
-
 func isRaysuiteFile(entity string) bool {
-	return getFileExtension(entity) == config.RaysuiteExtension
+	return filepath.Ext(entity) == config.RaysuiteExtension
 }
 
 func isRaygunFile(entity string) bool {
-	return getFileExtension(entity) == config.RaygunExtension
+	return filepath.Ext(entity) == config.RaygunExtension
 }
 
 func init() {

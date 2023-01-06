@@ -5,56 +5,35 @@ import (
 	"raygun/config"
 )
 
-// var debug bool = false
-// var verbose bool = false
-// var normal bool = true
-// var warning bool = true
-
-// func SetDebug(v bool) {
-// 	debug = v
-// }
-
-// func SetVerbose(v bool) {
-// 	verbose = v
-// }
-
-// func SetWarning(v bool) {
-// 	warning = v
-// }
-
-// func SetNormal(v bool) {
-// 	normal = v
-// }
-
 func Verbose(format string, a ...any) {
-	if config.Verbose {
-		fmt.Printf(format, a...)
+	if config.Verbose || config.Debug {
+		fmt.Printf(format+"\n", a...)
 	}
 }
 
 func Debug(format string, a ...any) {
 	if config.Debug {
 		debug_msg := fmt.Sprintf(format, a...)
-		fmt.Printf("DEBUG: %s", debug_msg)
+		fmt.Printf("DEBUG: %s\n", debug_msg)
 	}
 }
 
 func Normal(format string, a ...any) {
 	if config.Normal {
-		fmt.Printf(format, a...)
+		fmt.Printf(format+"\n", a...)
 	}
 }
 
 func Warning(format string, a ...any) {
 	if config.Warning {
 		warn_msg := fmt.Sprintf(format, a...)
-		fmt.Printf("WARN : %s", warn_msg)
+		fmt.Printf("WARN : %s\n", warn_msg)
 	}
 }
 
 func Error(format string, a ...any) {
 	if config.Error {
 		err_msg := fmt.Sprintf(format, a...)
-		fmt.Printf("ERROR: %s", err_msg)
+		fmt.Printf("ERROR: %s\n", err_msg)
 	}
 }

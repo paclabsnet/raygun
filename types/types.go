@@ -1,14 +1,15 @@
 package types
 
 type SuiteDetails struct {
-	OpaPort           uint16
-	OpaExecutablePath *string
-	OpaRuleUrlPath    *string
-	RegoSourcePath    string
-	RaygunTestFiles   []string
-	OpaData           *string
-	SuiteName         string
-	SuiteDescription  string
+	OpaPort             uint16
+	OpaExecutablePath   *string
+	OpaWorkingDirectory *string
+	RuleUrlPath         *string
+	RegoSourceFiles     []string
+	RaygunTestFiles     []string
+	OpaData             *string
+	SuiteName           string
+	SuiteDescription    string
 }
 
 type TestDetails struct {

@@ -1,0 +1,19 @@
+#Name
+	This is the name
+
+#Description
+	This is the multi-line
+	description
+
+#Data
+{}
+
+#Rego Source Files
+test.rego
+	test2.rego
+
+test3.rego
+
+#With Test Files
+*.raygun
+
