@@ -1,39 +1,29 @@
 package opa
 
 import (
-	"raygun/config"
 	"raygun/log"
 )
 
 type OpaConfig struct {
-	opa_port            uint16
-	opa_executable_path string
-	opa_data            string
-	rego_source_files   []string
+	OpaPort    uint16
+	OpaPath    string
+	BundlePath string
+	LogPath    string
 }
 
 /*
- we PUT the opa_data into OPA at path /v1/data
 
- we launch OPA specifying the .rego file found at {rego_package_path}
+ we launch OPA specifying the bundle.tar.gz file to use as the source for .rego and the data section
 
 */
 
-func DefineRuntime(rego_source_files []string, opa_data *string) *OpaConfig {
+func DefineRuntime(opa_path string, opa_port uint16, bundle_path string, log_path string) *OpaConfig {
 
 	o := &OpaConfig{
-		opa_port:          config.DefaultOpaPort,
-		rego_source_files: rego_source_files,
-	}
-
-	if config.DefaultOpaExecutablePath != nil {
-		o.opa_executable_path = *config.DefaultOpaExecutablePath
-	} else {
-		o.opa_executable_path = "opa"
-	}
-
-	if opa_data != nil {
-		o.opa_data = *opa_data
+		OpaPort:    opa_port,
+		OpaPath:    opa_path,
+		BundlePath: bundle_path,
+		LogPath:    log_path,
 	}
 
 	return o
@@ -41,8 +31,7 @@ func DefineRuntime(rego_source_files []string, opa_data *string) *OpaConfig {
 
 func (opa *OpaConfig) Start() error {
 
-	log.Warning("OPA Start not implemented, faking for now to test the rest of the system")
-
+	log.Warning("Opa Start() not implemented")
 	return nil
 
 }

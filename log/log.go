@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"os"
 	"raygun/config"
 )
 
@@ -36,4 +37,10 @@ func Error(format string, a ...any) {
 		err_msg := fmt.Sprintf(format, a...)
 		fmt.Printf("ERROR: %s\n", err_msg)
 	}
+}
+
+func Fatal(format string, a ...any) {
+	err_msg := fmt.Sprintf(format, a...)
+	fmt.Printf("FATAL: %s\n", err_msg)
+	os.Exit(-1)
 }

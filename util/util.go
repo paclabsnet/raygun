@@ -2,58 +2,78 @@ package util
 
 import (
 	"bufio"
-	"errors"
-	"os"
 	"path/filepath"
-	"raygun/log"
+	"sort"
 	"strings"
 )
 
-func ReadFile(filename string) (*string, error) {
-	// Read the file into a []byte slice
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
+/*
+ *  sorts the keys of a map so we always get them in the same order
+ *  from run to run.  This helps with validation and debugging
+ *  and operational cleanliness
+ */
+func SortMapKeys(data map[string]interface{}) []string {
+	keys := make([]string, len(data))
+	i := 0
+	for k := range data {
+		keys[i] = k
+		i++
 	}
 
-	// Convert the []byte slice to a string
-	str := string(data)
+	sort.Strings(keys)
 
-	return &str, nil
+	return keys
 }
 
-func SplitHeaderAndBody(data string) (*string, *string, error) {
+// func ReadFile(filename string) (*string, error) {
+// 	// Read the file into a []byte slice
+// 	data, err := os.ReadFile(filename)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	var header string
-	var body string = ""
+// 	// Convert the []byte slice to a string
+// 	str := string(data)
 
-	log.Debug("SplitHeaderAndBody: processing: %s", data)
+// 	return &str, nil
+// }
 
-	scanner := bufio.NewScanner(strings.NewReader(data))
+// func SplitHeaderAndBody(data string) (*string, *string, error) {
 
-	if !scanner.Scan() {
-		return nil, nil, errors.New("SplitHeaderAndbody: invalid header/body pair:" + data)
-	}
+// 	var header string
+// 	var body string = ""
 
-	header = scanner.Text()
+// 	log.Debug("SplitHeaderAndBody: processing: %s", data)
 
-	header = strings.TrimSpace(header)
+// 	scanner := bufio.NewScanner(strings.NewReader(data))
 
-	// we want to keep
-	for scanner.Scan() {
-		body += scanner.Text() + "\n"
-	}
+// 	if !scanner.Scan() {
+// 		return nil, nil, errors.New("SplitHeaderAndbody: invalid header/body pair:" + data)
+// 	}
 
-	return &header, &body, nil
-}
+// 	header = scanner.Text()
 
-func Chomp(data string) string {
+// 	header = strings.TrimSpace(header)
 
-	data = strings.Trim(data, " \n\t\r")
+// 	// we want to keep
+// 	for scanner.Scan() {
+// 		body += scanner.Text() + "\n"
+// 	}
 
-	return data
-}
+// 	return &header, &body, nil
+// }
 
+// func Chomp(data string) string {
+
+// 	data = strings.Trim(data, " \n\t\r")
+
+// 	return data
+// }
+
+/*
+ * Take a string that has newlines, and convert each line into a separate array element
+ * in a list of strings
+ */
 func Listify(data string) []string {
 
 	list := make([]string, 0)
@@ -65,7 +85,7 @@ func Listify(data string) []string {
 		text := strings.TrimSpace(scanner.Text())
 
 		if len(text) > 0 {
-			list = append(list, strings.TrimSpace(scanner.Text()))
+			list = append(list, text)
 		}
 	}
 
@@ -77,4 +97,40 @@ func GetFileExtension(entity string) string {
 
 	return filepath.Ext(entity)
 
+}
+
+/*
+ * returns true if the object is a string
+ */
+func IsString(obj interface{}) bool {
+
+	_, ok := obj.(string)
+
+	return ok
+}
+
+/*
+ * returns true if the object is a map, and it can be three
+ * different types of map - a map of itnerfaces or a map of strings
+ */
+func IsMap(obj interface{}) bool {
+
+	_, ok := obj.(map[string]interface{})
+
+	if ok {
+		return true
+	}
+
+	_, ok = obj.(map[string]string)
+
+	return ok
+}
+
+/*
+ * returns true if the object is an array of interfaces
+ */
+func IsArray(obj interface{}) bool {
+	_, ok := obj.([]interface{})
+
+	return ok
 }
