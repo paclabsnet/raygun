@@ -1,5 +1,11 @@
 package config
 
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+)
+
 const STANDARD_OPA_PORT uint16 = 8181
 
 const DEFAULT_RAYGUN_EXTENSION = ".raygun"
@@ -15,10 +21,11 @@ var StopOnFailure bool = false
 var SkipOnParseError bool = false
 var SkipOnNetworkError bool = false
 var RaygunExtension = DEFAULT_RAYGUN_EXTENSION
+var ReportFormat = "text"
 var OpaPort = STANDARD_OPA_PORT
 var OpaExecutablePath = "opa"
 var OpaBundlePath = "bundle.tar.gz"
-var OpaLogPath = "/tmp/raygun_opa.log"
+var OpaLogPath = filepath.FromSlash(fmt.Sprintf("%s/raygun_opa.log", os.Getenv("TMP")))
 
 const PASS = "pass"
 const FAIL = "fail"

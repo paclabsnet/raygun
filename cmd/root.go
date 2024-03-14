@@ -45,5 +45,13 @@ func init() {
 	//	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Debug")
-	rootCmd.PersistentFlags().StringVar(&config.OpaExecutablePath, "opa-exec", "", "Location of the OPA executable")
+	rootCmd.PersistentFlags().BoolVar(&config.StopOnFailure, "stop-on-failure", false, "Stop immediately at the first failed test")
+	rootCmd.PersistentFlags().BoolVar(&config.SkipOnNetworkError, "skip-on-network-failure", false, "skip tests that fail because of OPA connectivity issues")
+	rootCmd.PersistentFlags().BoolVar(&config.SkipOnParseError, "skip-on-parse-failure", false, "skip Raygun files that aren't valid YAML")
+
+	rootCmd.PersistentFlags().StringVar(&config.OpaExecutablePath, "opa-exec", "opa", "Location of the OPA executable")
+	rootCmd.PersistentFlags().StringVar(&config.OpaLogPath, "opa-log", config.OpaLogPath, "Location of the OPA log file")
+
+	rootCmd.PersistentFlags().StringVar(&config.ReportFormat, "report-format", config.ReportFormat, "Format of the test report (text, json)")
+
 }

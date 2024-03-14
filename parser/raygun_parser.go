@@ -41,9 +41,9 @@ func (parser *RaygunParser) Parse(raygun_file_list []string) ([]types.TestSuite,
 			} else {
 				log.Warning("Parse error on suite file: %s -> %v .. skipping", file, err)
 			}
+		} else {
+			suite_list = append(suite_list, suite)
 		}
-
-		suite_list = append(suite_list, suite)
 
 	}
 
@@ -56,12 +56,17 @@ and strings that come out of that process
 */
 func (parser *RaygunParser) ParseSuiteFile(suite_file_path string) (types.TestSuite, error) {
 
+	// make sure the filepath is in the OS-dependent format
+	suite := types.TestSuite{Directory: filepath.Dir(suite_file_path)}
+	suite.Tests = make([]types.TestRecord, 0)
+
 	tree := make(map[string]interface{})
 
 	yamlFile, err := os.ReadFile(suite_file_path)
 	if err != nil {
 		if parser.SkipOnParseError {
 			log.Warning("Parse Error on: %s [%v] . skipping...", suite_file_path, err)
+			return suite, err
 		} else {
 			log.Fatal("Parse Error on %s [%v]", suite_file_path, err)
 		}
@@ -71,25 +76,19 @@ func (parser *RaygunParser) ParseSuiteFile(suite_file_path string) (types.TestSu
 	if err != nil {
 		if parser.SkipOnParseError {
 			log.Warning("Parse Error on: %s [%v] . skipping...", suite_file_path, err)
+			return suite, err
 		} else {
 			log.Fatal("Parse Error on %s [%v]", suite_file_path, err)
 		}
 	}
 
-	//	log.Debug(" YAML File %s as Map:\n%v", filepath, tree)
-
-	suiteDirectory := filepath.Dir(suite_file_path)
-
-	log.Debug("Filepath is: %s, Suite Directory: %s", suite_file_path, suiteDirectory)
-
-	suite := types.TestSuite{Directory: suiteDirectory}
-
-	suite.Tests = make([]types.TestRecord, 0)
+	log.Debug("Filepath is: %s, Suite Directory: %s", suite_file_path, suite.Directory)
 
 	err = parser.yamlToSuite(&suite, tree)
 	if err != nil {
 		if parser.SkipOnParseError {
 			log.Warning("Parse Error on: %s [%v] . skipping...", suite_file_path, err)
+			return suite, err
 		} else {
 			log.Fatal("Parse Error on %s [%v]", suite_file_path, err)
 		}

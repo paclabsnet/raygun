@@ -53,7 +53,7 @@ func (f Finder) FindTargets(entities []string) ([]string, error) {
 
 	}
 
-	log.Verbose("Directories to search for Raygun files: %v", directories)
+	log.Debug("Directories to search for Raygun files: %v", directories)
 
 	for _, dir := range directories {
 

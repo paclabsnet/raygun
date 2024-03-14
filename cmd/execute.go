@@ -5,10 +5,12 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"raygun/config"
 	"raygun/finder"
 	"raygun/log"
 	"raygun/parser"
+	"raygun/report"
 	"raygun/runner"
 
 	"github.com/spf13/cobra"
@@ -97,7 +99,12 @@ var executeCmd = &cobra.Command{
 			return err
 		}
 
-		log.Verbose("Suite files: %v", suite_files)
+		if len(suite_files) == 0 {
+			log.Warning("No .raygun files found in specified location(s)")
+			os.Exit(2)
+		}
+
+		log.Verbose("Parsing Raygun files: %v", suite_files)
 
 		parser := parser.New(config.SkipOnParseError)
 
@@ -108,7 +115,20 @@ var executeCmd = &cobra.Command{
 			return err
 		}
 
-		log.Verbose("Test Suite List: %v", test_suite_list)
+		//
+		// Show what test suites we're about to test
+		//
+		if config.Verbose {
+			log.Verbose("Test Suites: ")
+			for _, suite := range test_suite_list {
+				log.Verbose("   %s : %d tests", suite.Name, len(suite.Tests))
+			}
+		}
+
+		// create and execute the test-suite runner. It returns the combined
+		// results from all of the test suites.
+		//
+		// if config.StopOnFailure is true, this will have a partial set of results
 
 		suiteRunner := runner.NewSuiteRunner(test_suite_list)
 
@@ -119,7 +139,18 @@ var executeCmd = &cobra.Command{
 			return err
 		}
 
-		log.Normal("Test Results: %v", results)
+		reporter := report.Build(config.ReportFormat)
+
+		output := reporter.Generate(results)
+
+		log.Normal(output)
+
+		/*
+		 * Fail with an error code, so build tools can detect it
+		 */
+		if reporter.TestFailuresExist(results) {
+			os.Exit(1)
+		}
 
 		return nil
 

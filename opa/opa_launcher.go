@@ -41,6 +41,7 @@ func (opa *OpaRunner) Start() error {
 
 	if err != nil {
 		log.Error("Unable to find %s on the path", commandToRun)
+		return err
 	}
 
 	log.Debug("OpaRunner.Start() - commandToRun: %s - absolute_path: %s", commandToRun, absolute_path)
@@ -49,8 +50,19 @@ func (opa *OpaRunner) Start() error {
 
 	log.Debug("OpaRunner.Start() - arg string: %v", args)
 
+	//	opa_log_file := filepath.ToSlash(opa.Config.LogPath)
+	//
+	//	log.Debug("OpaRunner.Start() - opening log file for opa at: %s", opa_log_file)
+
+	opaLog, err := os.Create(opa.Config.LogPath)
+
+	if err != nil {
+		log.Error("Unable to create file: %s : %s", opa.Config.LogPath, err.Error())
+		return err
+	}
+
 	procAttr := new(os.ProcAttr)
-	procAttr.Files = []*os.File{os.Stdin, os.Stdout, os.Stderr}
+	procAttr.Files = []*os.File{os.Stdin, os.Stdout, opaLog}
 
 	process, err := os.StartProcess(absolute_path, args, procAttr)
 

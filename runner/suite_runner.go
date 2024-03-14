@@ -51,6 +51,11 @@ func (suiteRunner *SuiteRunner) Execute() (types.CombinedResult, error) {
 
 		suiteRunner.LastSuite = &suiteRunner.SuiteList[i]
 
+		if len(result.Failed) > 0 && config.StopOnFailure {
+			log.Debug("Detected test failures, and StopOnFailure is true, so we're aborting")
+			break
+		}
+
 	}
 
 	suiteRunner.StopOpa()
@@ -58,39 +63,62 @@ func (suiteRunner *SuiteRunner) Execute() (types.CombinedResult, error) {
 	return results, nil
 }
 
+/*
+ *  Execute a single suite of tests. If the OPA configuration is different than the last
+ *  OPA configuration (different executable, different bundle, different log file), then this
+ *  function will also stop OPA (if necessary) and start OPA with the new configuration
+ */
 func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestSuiteResult, error) {
 
 	results := types.TestSuiteResult{}
+
+	results.Source = suite
 
 	if suiteRunner.DifferentOpaConfigurationThanLast(suite) {
 
 		suiteRunner.StopOpa()
 
-		suiteRunner.StartOpa(suite)
+		err := suiteRunner.StartOpa(suite)
+
+		if err != nil {
+			return results, err
+		}
 	}
 
-	//	log.Normal("Nothing is implemented yet, so test suite: %s cannot be run", suite)
-
 	/*
-		Now, it is time to figure out how to POST to the OPA url
-	*/
-
+	 *   for each test, we POST data to OPA at the test-specified location, and
+	 *   compare the results to our expected results
+	 *
+	 *
+	 */
 	for _, test := range suite.Tests {
 
 		testRunner := NewTestRunner(test)
 
-		response, err := testRunner.Post()
+		response, network_err := testRunner.Post()
 
-		if err != nil {
-			log.Error("Failed to POST data to OPA: %s", err.Error())
-			return results, err
-		}
+		testResult := types.TestResult{Source: test}
+		var eval_err error = nil
 
-		testResult, err := testRunner.Evaluate(response)
+		if network_err != nil {
+			if config.SkipOnNetworkError {
+				testResult.Status = config.SKIP
+			} else {
+				log.Error("Failed to POST data to OPA: %s", network_err.Error())
+				return results, network_err
+			}
 
-		if err != nil {
-			log.Error("Failed to evaluate response from OPA: %s", err.Error())
-			return results, err
+		} else {
+
+			testResult, eval_err = testRunner.Evaluate(response)
+
+			/*
+			 *  This shouldn't happen, so its a fairly serious problem
+			 */
+			if eval_err != nil {
+				log.Error("Failed to evaluate response from OPA: %s", eval_err.Error())
+				return results, eval_err
+			}
 		}
 
 		switch testResult.Status {
@@ -106,22 +134,10 @@ func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestS
 
 		log.Debug("Expectations: type: %s, value: %s", test.Expects.ExpectationType, test.Expects.Target)
 
-		/*
-			request, err := http.NewRequest("POST", postUrl, bytes.NewBuffer(body))
-
-			if err != nil {
-				log.Error("attempted to create POST request to %s with data %v -> %s", postUrl, body, err.Error())
-				return results, err
-			}
-
-			request.Header.Add("Content-Type", "application/json")
-
-			client := &http.Client{}
-			response, err := client.Do(request)
-
-
-			defer response.Body.Close()
-		*/
+		if len(results.Failed) > 0 && config.StopOnFailure {
+			log.Debug("Test failure detected and StopOnFailure is true, aborting...")
+			break
+		}
 
 	}
 
@@ -129,10 +145,17 @@ func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestS
 
 }
 
+/*
+ *  If there's an OPA process ID, this will stop it.
+ */
 func (suiteRunner *SuiteRunner) StopOpa() {
 
 	if suiteRunner.OpaRunner != nil {
 
+		/*
+		 *  if this is the first time through the suite list, there won't be a Last Suite
+		 *  to use for debug reporting.
+		 */
 		if suiteRunner.LastSuite != nil {
 			log.Debug("Stopping OPA with config: %v", suiteRunner.LastSuite.Opa)
 		} else {
@@ -142,11 +165,18 @@ func (suiteRunner *SuiteRunner) StopOpa() {
 
 		suiteRunner.OpaRunner = nil
 	} else {
-		log.Debug("Attempted to stop OPA, but no runner was found")
+		log.Debug("StopOpa() - OpaRunner wasn't found, skipping")
 	}
 }
 
-func (suiteRunner *SuiteRunner) StartOpa(suite types.TestSuite) {
+/*
+ *   Starts up OPA with the specified executable, and includes the appropriate bundle file
+ *   in the command line arguments.
+ *
+ *   We handle the OPA output stderr as a separate file, so it doesn't clutter the test
+ *   output
+ */
+func (suiteRunner *SuiteRunner) StartOpa(suite types.TestSuite) error {
 
 	log.Debug("Starting OPA with config: %v", suite.Opa)
 
@@ -154,9 +184,15 @@ func (suiteRunner *SuiteRunner) StartOpa(suite types.TestSuite) {
 
 	suiteRunner.OpaRunner = &opa_runner
 
-	suiteRunner.OpaRunner.Start()
+	err := suiteRunner.OpaRunner.Start()
+
+	return err
 }
 
+/*
+ *  Compares various elements of the OPA configuration, to determine if we need to start a new
+ *  copy of OPA with a different bundle, log file or executable
+ */
 func (suiteRunner SuiteRunner) DifferentOpaConfigurationThanLast(suite types.TestSuite) bool {
 
 	if suiteRunner.LastSuite == nil {
@@ -182,94 +218,3 @@ func (suiteRunner SuiteRunner) DifferentOpaConfigurationThanLast(suite types.Tes
 	log.Debug("DifferentOpaConfigurationThanLast: No differences in Opa Config detected: %v vs %v", suiteRunner.LastSuite.Opa, suite.Opa)
 	return false
 }
-
-// parser := ray_parser.New()
-
-// suite, err := parser.ParseSuiteFile(suitePath, suiteFilename)
-
-// if err != nil {
-// 	log.Error("suite_runner: unable to process suite filename: %s/%s", suitePath, suiteFilename)
-// 	return err
-// }
-
-// if len(suite.RaygunTestFiles) == 0 {
-// 	log.Error("no test files found\n")
-// 	return nil
-// }
-// log.Verbose("Using test files: %v\n", suite.RaygunTestFiles)
-
-// log.Verbose("launching OPA with the appropriate rules and data\n")
-
-// opa := opa.DefineRuntime(suite.RegoSourceFiles, suite.OpaData)
-
-// err = opa.Start()
-
-// if err != nil {
-// 	return err
-// }
-
-// log.Verbose("iterating over the test files and executing them\n")
-
-// for _, test_file := range suite.RaygunTestFiles {
-
-// 	testDetails, err := parser.ParseTestFile(test_file, suite)
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	runner, err := build_test_runner(testDetails, opa)
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	outcome, failure_reason, err := runner.ExecuteTest()
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	if outcome == "PASS" {
-// 		log.Normal("Test %s : PASS\n", testDetails.Name)
-// 	} else {
-// 		log.Normal("test %s : FAIL: %s\n", testDetails.Name, failure_reason)
-// 	}
-
-// }
-
-// opa.Stop()
-
-// return nil
-
-// func build_test_runner(details *types.TestRecord, opaConfig *types.OpaConfig) (*TestRunner, error) {
-// 	return nil, errors.New("not_implemented_suite_runner_build_test_runner")
-// }
-
-/* func run_test(test *types.TestDetails, opa_context map[string]interface{}) (string, string, error) {
-
-	return "FAIL", "Not implemented yet", nil
-
-}
-*/
-/* func parse_test_file(test_file os.FileInfo, suite_context map[string]interface{}) (*types.TestDetails, error) {
-
-	td := types.NewTestDetails(test_file.Name())
-
-	return td, errors.New("not_implemented_suite_runner_parse_test_file")
-}
-*/
-/* func launch_opa(suite_context map[string]interface{}) (map[string]interface{}, error) {
-	opa_ctx := make(map[string]interface{})
-
-	return opa_ctx, nil
-}
-*/
-/* func parse_suite_file(suite string) (map[string]interface{}, []os.FileInfo, error) {
-	suite_ctx := make(map[string]interface{})
-
-	test_file_array := make([]os.FileInfo, 0)
-
-	return suite_ctx, test_file_array, nil
-}
-*/

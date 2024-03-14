@@ -23,7 +23,7 @@ func NewTestRunner(test types.TestRecord) TestRunner {
 
 func (tr TestRunner) Post() (string, error) {
 
-	postUrl := fmt.Sprintf("http://localhost:8181%s", tr.Source.DecisionPath)
+	postUrl := fmt.Sprintf("http://localhost:%d%s", config.OpaPort, tr.Source.DecisionPath)
 
 	bodyString := fmt.Sprintf("{\"input\":%s}", tr.Source.Input.Value)
 
@@ -55,6 +55,8 @@ func (tr TestRunner) Post() (string, error) {
 func (tr TestRunner) Evaluate(response string) (types.TestResult, error) {
 
 	result := types.TestResult{}
+
+	result.Source = tr.Source
 
 	switch tr.Source.Expects.ExpectationType {
 	case "substring":
