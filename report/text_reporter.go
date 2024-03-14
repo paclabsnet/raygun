@@ -21,7 +21,13 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 
 	for _, suite_result := range results.ResultList {
 
-		sb.WriteString(fmt.Sprintf("   %s:\n", suite_result.Source.Name))
+		sb.WriteString(fmt.Sprintf("   Suite: %s :\n", suite_result.Source.Name))
+
+		if config.Verbose {
+			sb.WriteString("      OPA Configuration:\n")
+			sb.WriteString(fmt.Sprintf("         OPA Output Log: %s\n", suite_result.Source.Opa.LogPath))
+			sb.WriteString(fmt.Sprintf("         Using OPA Bundle: %s\n", suite_result.Source.Opa.BundlePath))
+		}
 
 		for _, test_result := range suite_result.Skipped {
 			sb.WriteString(fmt.Sprintf("      SKIPPED: %s", test_result.Source.Name))
@@ -40,6 +46,7 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 
 		for _, test_result := range suite_result.Failed {
 			test_failures = true
+			sb.WriteString("\n")
 			sb.WriteString(fmt.Sprintf("      FAILED: %s", test_result.Source.Name))
 			if config.Verbose {
 				sb.WriteString(fmt.Sprintf(" - %s", test_result.Source.Description))
@@ -54,7 +61,7 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 					strings.TrimRight(test_result.Actual, "\r\n")))
 
 			}
-
+			sb.WriteString("\n")
 		}
 
 	}

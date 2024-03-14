@@ -11,9 +11,9 @@ tests:
       type: substring
       target: '"allow":false'
     input:
-      type: inline
-      value: >
-       { "name" : "ray" }
+      type: json-file
+      value: example2-test1.json
+
 
   - name: ex2-test2
     description: test2

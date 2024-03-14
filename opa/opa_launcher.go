@@ -75,9 +75,8 @@ func (opa *OpaRunner) Start() error {
 
 	opa.Process = process
 
+	log.Debug("Waiting for 1 second for OPA to start up")
 	time.Sleep(1 * time.Second)
-
-	log.Debug("Hopefully OPA is now up")
 
 	return nil
 }

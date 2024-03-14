@@ -196,7 +196,7 @@ func (p RaygunParser) yamlToTest(suite *types.TestSuite, tree map[string]interfa
 
 	//	log.Debug("test info: %v", tree)
 
-	test := types.TestRecord{}
+	test := types.TestRecord{Suite: *suite}
 
 	sorted_keys := util.SortMapKeys(tree)
 

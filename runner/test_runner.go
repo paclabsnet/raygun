@@ -2,12 +2,14 @@ package runner
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"raygun/config"
 	"raygun/log"
 	"raygun/types"
+	"raygun/util"
 	"strings"
 )
 
@@ -25,7 +27,23 @@ func (tr TestRunner) Post() (string, error) {
 
 	postUrl := fmt.Sprintf("http://localhost:%d%s", config.OpaPort, tr.Source.DecisionPath)
 
-	bodyString := fmt.Sprintf("{\"input\":%s}", tr.Source.Input.Value)
+	bodyString := ""
+
+	switch tr.Source.Input.InputType {
+	case "inline":
+		bodyString = fmt.Sprintf("{\"input\":%s}", tr.Source.Input.Value)
+	case "json-file":
+		log.Debug("Suite Directory: %s , filename: %s", tr.Source.Suite.Directory, tr.Source.Input.Value)
+		tmp, err := util.ReadFile(tr.Source.Suite.Directory, tr.Source.Input.Value)
+		if err != nil {
+			return "", err
+		}
+
+		bodyString = fmt.Sprintf("{\"input\":%s}", tmp)
+
+	default:
+		return "", errors.New(fmt.Sprintf("unsupported input type: %s", tr.Source.Input.InputType))
+	}
 
 	bodyBytes := []byte(bodyString)
 

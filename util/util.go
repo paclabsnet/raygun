@@ -2,6 +2,8 @@ package util
 
 import (
 	"bufio"
+	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -133,4 +135,22 @@ func IsArray(obj interface{}) bool {
 	_, ok := obj.([]interface{})
 
 	return ok
+}
+
+/*
+ * Read the contents of a file into a string
+ */
+func ReadFile(current_path string, target_file string) (string, error) {
+
+	filename := filepath.Join(current_path, target_file)
+
+	fileBytes, err := os.ReadFile(filename)
+
+	if err != nil {
+		fmt.Printf("ERROR: can't open file for reading: %s -> %s", filename, err.Error())
+		return "", err
+	}
+
+	return string(fileBytes), nil
+
 }
