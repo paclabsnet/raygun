@@ -154,3 +154,10 @@ func ReadFile(current_path string, target_file string) (string, error) {
 	return string(fileBytes), nil
 
 }
+
+/*
+ * Strings all whiespace from a string
+ */
+func RemoveAllWhitespace(str string) string {
+	return strings.ReplaceAll(str, " ", "")
+}

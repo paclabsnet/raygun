@@ -1,0 +1,84 @@
+{ "input" :
+  {
+    "name" : "other",
+    "asdfffdas": null,
+    "asdfffdsdf": null,
+    "dependencies": null,
+    "asdf": {
+      "created_at": "asdf",
+      "updated_at": "asdf",
+      "uuid": "asdf",
+      "file_count": 0,
+      "version": "aasdf-41141",
+      "external_uri": "asdf",
+      "properties": null,
+      "asdfasffdafdfdf": null,
+      "asdfasdf": null,
+      "asdfasdfasdfasdf": {
+        "asdfffdafdfdfasdfasdf": "asdf",
+        "timestamp": "asdf",
+        "input_path": "8d9cd9624a321b",
+        "total_issues": 2,
+        "summary": {
+          "asdfasdf": {
+            "asdf": 0,
+            "asdfasdf": 10,
+            "asdfasdfasdf": 0,
+            "asdfasdfasdfasdf": 0
+          }
+        },
+        "asdfasdfdfdfdfdfdfdfddf": {
+          "asdf": [],
+          "asdfasdf": [],
+          "asdfasdfasdf": [],
+          "asdfasdfasdfasdf": [
+            {
+              "description": "asdf",
+              "operator": "asdf",
+              "module": "__builtin__",
+              "source": "asdf",
+              "scanner": "asdf"
+            },
+            {
+              "description": "asdf",
+              "operator": "asdf",
+              "module": "asdf",
+              "source": "asdf",
+              "scanner": "asdf"
+            }
+          ]
+        },
+        "errors": [],
+        "skipped": {
+          "total_skipped": 4,
+          "skipped_files": [
+            "asdf", "asdfasdf"
+          ]
+        }
+      },
+      "model": {
+        "created_at": "asdf",
+        "updated_at": "asdf",
+        "uuid": "asdf",
+        "name": "a-asdf",
+        "description": "asdf"
+      },
+      "bom_available": false,
+      "direction": null,
+      "files": [
+        {
+          "uri": "sasdf",
+          "storage_type": "S3",
+          "resource_name": "asdf",
+          "size": 1,
+          "version": "asdf",
+          "version_strategy": "S3"
+        }
+      ]
+    },
+    "fasdfasdf": [],
+    "asdfffdfdfdfdfdfdfd": "asdf",
+    "dfdfdfdfdfdfdsafasdfasdf": "asdf",
+    "asdfffdfdfdfdfdfaaaaaa": []
+  }
+}

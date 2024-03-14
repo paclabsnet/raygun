@@ -2,7 +2,6 @@ package runner
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -31,19 +30,25 @@ func (tr TestRunner) Post() (string, error) {
 
 	switch tr.Source.Input.InputType {
 	case "inline":
-		bodyString = fmt.Sprintf("{\"input\":%s}", tr.Source.Input.Value)
+		// we're readying directly from the .raygun file, and it may or may not already have
+		// the input key
+		bodyString = optionally_add_input_key(tr.Source.Input.Value)
 	case "json-file":
+
+		// we're reading the data from a json file, which may or may not have an input tag already
 		log.Debug("Suite Directory: %s , filename: %s", tr.Source.Suite.Directory, tr.Source.Input.Value)
 		tmp, err := util.ReadFile(tr.Source.Suite.Directory, tr.Source.Input.Value)
 		if err != nil {
 			return "", err
 		}
 
-		bodyString = fmt.Sprintf("{\"input\":%s}", tmp)
+		bodyString = optionally_add_input_key(tmp)
 
 	default:
-		return "", errors.New(fmt.Sprintf("unsupported input type: %s", tr.Source.Input.InputType))
+		return "", fmt.Errorf("unsupported input type: %s", tr.Source.Input.InputType)
 	}
+
+	//	log.Debug("BodyString: %s", bodyString)
 
 	bodyBytes := []byte(bodyString)
 
@@ -78,11 +83,10 @@ func (tr TestRunner) Evaluate(response string) (types.TestResult, error) {
 
 	switch tr.Source.Expects.ExpectationType {
 	case "substring":
-		actual := strings.ReplaceAll(response, " ", "")
-
+		actual := util.RemoveAllWhitespace(response)
 		result.Actual = actual
 
-		expected := strings.ReplaceAll(tr.Source.Expects.Target, " ", "")
+		expected := util.RemoveAllWhitespace(tr.Source.Expects.Target)
 		if strings.Contains(actual, expected) {
 			result.Status = config.PASS
 		} else {
@@ -94,4 +98,19 @@ func (tr TestRunner) Evaluate(response string) (types.TestResult, error) {
 	}
 
 	return result, nil
+}
+
+/*
+ *  Keeping it really simple until we know we need something more sophisticated
+ */
+func optionally_add_input_key(json string) string {
+
+	no_whitespace := util.RemoveAllWhitespace(json)
+
+	if strings.HasPrefix(no_whitespace, "{\"input\"") {
+		return json
+	}
+
+	return fmt.Sprintf("{\"input\":%s}", json)
+
 }
