@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"raygun/config"
 	"raygun/log"
 	"raygun/types"
@@ -49,52 +50,48 @@ func (parser *RaygunParser) Parse(raygun_file_list []string) ([]types.TestSuite,
 	return suite_list, nil
 }
 
-func (parser *RaygunParser) ParseSuiteFile(filepath string) (types.TestSuite, error) {
-
-	/*
-		The Suite File is a .raygun file, but it
-	*/
-
-	log.Debug("RaygunParser: ParseSuiteFile: filepath: %s", filepath)
-
-	// data, err := util.ReadFile(filepath)
-
-	// if err != nil {
-	// 	return nil, err
-	// }
+/*
+the .raygun file is YAML, so we'll use a YAML parser to process it and then work with the maps
+and strings that come out of that process
+*/
+func (parser *RaygunParser) ParseSuiteFile(suite_file_path string) (types.TestSuite, error) {
 
 	tree := make(map[string]interface{})
 
-	yamlFile, err := os.ReadFile(filepath)
+	yamlFile, err := os.ReadFile(suite_file_path)
 	if err != nil {
 		if parser.SkipOnParseError {
-			log.Warning("Parse Error on: %s [%v] . skipping...", filepath, err)
+			log.Warning("Parse Error on: %s [%v] . skipping...", suite_file_path, err)
 		} else {
-			log.Fatal("Parse Error on %s [%v]", filepath, err)
+			log.Fatal("Parse Error on %s [%v]", suite_file_path, err)
 		}
 	}
 
 	err = yaml.Unmarshal(yamlFile, tree)
 	if err != nil {
 		if parser.SkipOnParseError {
-			log.Warning("Parse Error on: %s [%v] . skipping...", filepath, err)
+			log.Warning("Parse Error on: %s [%v] . skipping...", suite_file_path, err)
 		} else {
-			log.Fatal("Parse Error on %s [%v]", filepath, err)
+			log.Fatal("Parse Error on %s [%v]", suite_file_path, err)
 		}
 	}
 
-	log.Normal(" YAML File %s as Map:\n%v", filepath, tree)
+	//	log.Debug(" YAML File %s as Map:\n%v", filepath, tree)
 
-	suite := types.TestSuite{}
+	suiteDirectory := filepath.Dir(suite_file_path)
+
+	log.Debug("Filepath is: %s, Suite Directory: %s", suite_file_path, suiteDirectory)
+
+	suite := types.TestSuite{Directory: suiteDirectory}
 
 	suite.Tests = make([]types.TestRecord, 0)
 
 	err = parser.yamlToSuite(&suite, tree)
 	if err != nil {
 		if parser.SkipOnParseError {
-			log.Warning("Parse Error on: %s [%v] . skipping...", filepath, err)
+			log.Warning("Parse Error on: %s [%v] . skipping...", suite_file_path, err)
 		} else {
-			log.Fatal("Parse Error on %s [%v]", filepath, err)
+			log.Fatal("Parse Error on %s [%v]", suite_file_path, err)
 		}
 	}
 
@@ -117,7 +114,7 @@ func (p RaygunParser) yamlToSuite(suite *types.TestSuite, tree map[string]interf
 
 		v := tree[k]
 
-		log.Debug("raygun file: key: %s has value: %v", k, v)
+		//		log.Debug("raygun file: key: %s has value: %v", k, v)
 
 		switch k {
 		case "opa":
@@ -163,13 +160,14 @@ func (p RaygunParser) yamlToOpaConfig(suite *types.TestSuite, tree map[string]in
 
 		v := tree[k]
 
-		log.Debug("raygun file opa configuration: key: %s has value: %v", k, v)
+		//		log.Debug("raygun file opa configuration: key: %s has value: %v", k, v)
 
 		switch k {
 		case "path":
 			suite.Opa.OpaPath = v.(string)
 		case "bundle-path":
-			suite.Opa.BundlePath = v.(string)
+			suite.Opa.BundlePath = filepath.Join(suite.Directory, v.(string))
+			log.Debug("OPA BundlePath is: %s.  Suite Directory is: %s", suite.Opa.BundlePath, suite.Directory)
 		default:
 			return fmt.Errorf("unknown/unsupported opa config key: %s", k)
 		}
@@ -197,7 +195,7 @@ func (p RaygunParser) yamlToTestArray(suite *types.TestSuite, test_array []inter
 
 func (p RaygunParser) yamlToTest(suite *types.TestSuite, tree map[string]interface{}) error {
 
-	log.Debug("test info: %v", tree)
+	//	log.Debug("test info: %v", tree)
 
 	test := types.TestRecord{}
 

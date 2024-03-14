@@ -9,6 +9,7 @@ import (
 	"raygun/finder"
 	"raygun/log"
 	"raygun/parser"
+	"raygun/runner"
 
 	"github.com/spf13/cobra"
 )
@@ -25,7 +26,7 @@ import (
 		* Invocation Path (i.e. the URL we use for calling OPA to get the decision)
 		* Input JSON (embedded in .raygun file)
 		* Expected Output, in one format for now:
-			* match: "allow": true       (this is a string match, stripping all whitespace)
+			* substring: "allow": true       (this is a string match, stripping all whitespace)
 			* eventually we might include JSONPath as well
 
 	2. We iterate over the TestSuite records
@@ -108,6 +109,17 @@ var executeCmd = &cobra.Command{
 		}
 
 		log.Verbose("Test Suite List: %v", test_suite_list)
+
+		suiteRunner := runner.NewSuiteRunner(test_suite_list)
+
+		results, err := suiteRunner.Execute()
+
+		if err != nil {
+			log.Error("Unable to execute test suite: %v", err)
+			return err
+		}
+
+		log.Normal("Test Results: %v", results)
 
 		return nil
 

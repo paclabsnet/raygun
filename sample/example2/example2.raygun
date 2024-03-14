@@ -6,10 +6,10 @@ opa:
 tests:
   - name: ex2-test1
     description: this is the description for ex2-test1
-    decision-path:  /v1/data/example
+    decision-path:  /v1/data/example2
     expects:
       type: substring
-      target: '"allow":true'
+      target: '"allow":false'
     input:
       type: inline
       value: >
@@ -17,10 +17,10 @@ tests:
 
   - name: ex2-test2
     description: test2
-    decision-path:  /v1/data/example
+    decision-path:  /v1/data/example2
     expects:
       type: substring
-      target: '"allow":false'
+      target: '"allow":true'
     input:
       type: inline
       value: >

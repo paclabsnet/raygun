@@ -20,6 +20,10 @@ var OpaExecutablePath = "opa"
 var OpaBundlePath = "bundle.tar.gz"
 var OpaLogPath = "/tmp/raygun_opa.log"
 
+const PASS = "pass"
+const FAIL = "fail"
+const SKIP = "skip"
+
 //var RaysuiteExtension = DEFAULT_RAYSUITE_EXTENSION
 
 func SetDebug(v bool) {

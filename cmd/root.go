@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"os"
+	"raygun/config"
 
 	"github.com/spf13/cobra"
 )
@@ -44,4 +45,5 @@ func init() {
 	//	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Debug")
+	rootCmd.PersistentFlags().StringVar(&config.OpaExecutablePath, "opa-exec", "", "Location of the OPA executable")
 }

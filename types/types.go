@@ -9,12 +9,13 @@ type TestSuite struct {
 	Opa         opa.OpaConfig
 	Name        string
 	Description string
+	Directory   string
 	Tests       []TestRecord
 }
 
 func (suite TestSuite) String() string {
 
-	return fmt.Sprintf("Suite: %s with %d Tests", suite.Name, len(suite.Tests))
+	return fmt.Sprintf("Suite: %s with %d Tests and OPA config: %v", suite.Name, len(suite.Tests), suite.Opa.String())
 }
 
 type TestRecord struct {
@@ -29,6 +30,10 @@ type TestRecord struct {
 func (tr TestRecord) String() string {
 
 	return fmt.Sprintf("Test: %s (%s)", tr.Name, tr.Description)
+}
+
+type CombinedResult struct {
+	ResultList []TestSuiteResult
 }
 
 type TestSuiteResult struct {
@@ -46,10 +51,9 @@ func (tsr TestSuiteResult) String() string {
 }
 
 type TestResult struct {
-	Source   TestRecord
-	Expected TestExpectation
-	Actual   string
-	Status   string // fail, pass, skip
+	Source TestRecord
+	Actual string
+	Status string // fail, pass, skip
 }
 
 func (tr TestResult) String() string {
