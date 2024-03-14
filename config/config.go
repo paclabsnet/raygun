@@ -23,7 +23,8 @@ var SkipOnNetworkError bool = false
 var RaygunExtension = DEFAULT_RAYGUN_EXTENSION
 var ReportFormat = "text"
 var OpaPort = STANDARD_OPA_PORT
-var OpaExecutablePath = "opa"
+var OpaExecutablePath = FindOpaExecutable("opa")
+
 var OpaBundlePath = "bundle.tar.gz"
 var OpaLogPath = filepath.FromSlash(fmt.Sprintf("%s/raygun_opa.log", os.Getenv("TMP")))
 
@@ -67,4 +68,13 @@ func SetSkipOnNetworkError(v bool) {
 
 func SetOpaExecutablePath(path string) {
 	OpaExecutablePath = path
+}
+
+func FindOpaExecutable(defaultOpa string) string {
+
+	if tmp, found := os.LookupEnv("RAYGUN_OPA_EXEC"); found {
+		return tmp
+	}
+
+	return defaultOpa
 }
