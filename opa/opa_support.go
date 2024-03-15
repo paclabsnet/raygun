@@ -50,6 +50,7 @@ func (opa *OpaRunner) Start() error {
 
 	if err != nil {
 		log.Error("Unable to find %s on the path", commandToRun)
+		log.Error("Consider setting the environment variable RAYGUN_OPA_EXEC")
 		return err
 	}
 
