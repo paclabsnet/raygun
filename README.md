@@ -86,6 +86,6 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+* the OPA team for inspiring me to write this, especially Anders Eknert
+* Inspiration : all the test tools I've used in the past
+
