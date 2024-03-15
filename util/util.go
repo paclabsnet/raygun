@@ -27,51 +27,6 @@ func SortMapKeys(data map[string]interface{}) []string {
 	return keys
 }
 
-// func ReadFile(filename string) (*string, error) {
-// 	// Read the file into a []byte slice
-// 	data, err := os.ReadFile(filename)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// Convert the []byte slice to a string
-// 	str := string(data)
-
-// 	return &str, nil
-// }
-
-// func SplitHeaderAndBody(data string) (*string, *string, error) {
-
-// 	var header string
-// 	var body string = ""
-
-// 	log.Debug("SplitHeaderAndBody: processing: %s", data)
-
-// 	scanner := bufio.NewScanner(strings.NewReader(data))
-
-// 	if !scanner.Scan() {
-// 		return nil, nil, errors.New("SplitHeaderAndbody: invalid header/body pair:" + data)
-// 	}
-
-// 	header = scanner.Text()
-
-// 	header = strings.TrimSpace(header)
-
-// 	// we want to keep
-// 	for scanner.Scan() {
-// 		body += scanner.Text() + "\n"
-// 	}
-
-// 	return &header, &body, nil
-// }
-
-// func Chomp(data string) string {
-
-// 	data = strings.Trim(data, " \n\t\r")
-
-// 	return data
-// }
-
 /*
  * Take a string that has newlines, and convert each line into a separate array element
  * in a list of strings

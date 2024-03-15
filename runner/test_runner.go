@@ -83,11 +83,11 @@ func (tr TestRunner) Evaluate(response string) (types.TestResult, error) {
 
 	switch tr.Source.Expects.ExpectationType {
 	case "substring":
-		actual := util.RemoveAllWhitespace(response)
-		result.Actual = actual
+		compressed_actual := util.RemoveAllWhitespace(response)
+		result.Actual = response
 
 		expected := util.RemoveAllWhitespace(tr.Source.Expects.Target)
-		if strings.Contains(actual, expected) {
+		if strings.Contains(compressed_actual, expected) {
 			result.Status = config.PASS
 		} else {
 			result.Status = config.FAIL
