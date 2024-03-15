@@ -1,4 +1,12 @@
+/*
+Copyright © 2024 PACLabs
+*/
 package runner
+
+/*
+ *  The SuiteRunner is responsible for managing the launch and shutdown of OPA
+ *  and accumulating test reports from the TestRunner
+ */
 
 import (
 	"raygun/config"
@@ -19,18 +27,6 @@ func NewSuiteRunner(suite_list []types.TestSuite) SuiteRunner {
 
 	return suiteRunner
 }
-
-/*
-	// Set the current working directory for the executable to "/tmp"
-	cmd := exec.Command("my-executable")
-	cmd.Dir = "/tmp"
-
-	// Run the executable
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println(err)
-	}
-*/
 
 func (suiteRunner *SuiteRunner) Execute() (types.CombinedResult, error) {
 
@@ -146,7 +142,7 @@ func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestS
 }
 
 /*
- *  If there's an OPA process ID, this will stop it.
+ *  If there's an OPA process ID, this will stop it.  If not, it safely does nothing
  */
 func (suiteRunner *SuiteRunner) StopOpa() {
 

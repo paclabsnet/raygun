@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 John Brothers <johnbr@paclabs.net>
+Copyright © 2024 - PACLabs
 */
 package main
 
@@ -8,27 +8,24 @@ import (
 )
 
 /*
-how do I want to organize this thing?
 
-we start with a command that specifies what to do (test)
+   Raygun is a tool for testing Rego policy against OPA servers in a "real-life" facsimile
 
-we look for test suite filess in the specified place(s)
+   OPA has built in testing, but from our experience, it basically requires a very "white-box"
+   approach to writing and maintaining test cases.
 
-we parse the test suite files
-	- each suite file parse produces suite metadata
+   Raygun is an attempt at a 'black-box' testing framework for policy, where the testers can
+   create JSON to represent inputs, use some sort of pre-generated bundle for the policy code,
+   and specify what they expect as the output from that policy.
 
-- we iterate over test suites, using the suite metadata
-	- we parse the individual test files specified in the suite metadata
-		- this produces test details
-	- we build the opa launch configuration, using a mix of defaults, cli flags and suite metadata
-	- we launch OPA with the specified launch configuration
-	- for each file:
-		- we launch a test runner, with the test details and the opa launch configuration
-			- the test runner sends the input from the test file to OPA
-			- the test runner gets back the results from OPA and compare to expected and
-				return our findings
-		- we log the findings
-	= we shut down OPA
+   We have found this to be tremendously helpful in our own work, and thought it made sense
+   to share it with the community.
+
+   Usage:
+
+      raygun execute  <list of .raygun test files>
+
+   The Execute command (in cmd/execute) is the best place to start
 
 */
 

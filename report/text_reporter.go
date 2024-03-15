@@ -1,4 +1,11 @@
+/*
+Copyright © 2024 PACLabs
+*/
 package report
+
+/*
+ *  Generate a simple text output that looks familiar to
+ */
 
 import (
 	"fmt"
@@ -30,32 +37,30 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 		}
 
 		for _, test_result := range suite_result.Skipped {
-			sb.WriteString(fmt.Sprintf("      SKIPPED: %s", test_result.Source.Name))
+			sb.WriteString(fmt.Sprintf("      SKIPPED: %s\n", test_result.Source.Name))
 			if config.Verbose {
-				sb.WriteString(fmt.Sprintf(" - %s", test_result.Source.Description))
+				sb.WriteString(fmt.Sprintf("        - %s\n", test_result.Source.Description))
 			}
-			sb.WriteString("\n")
 		}
 		for _, test_result := range suite_result.Passed {
-			sb.WriteString(fmt.Sprintf("      PASSED: %s", test_result.Source.Name))
+			sb.WriteString(fmt.Sprintf("      PASSED: %s\n", test_result.Source.Name))
 			if config.Verbose {
-				sb.WriteString(fmt.Sprintf(" - %s", test_result.Source.Description))
+				sb.WriteString(fmt.Sprintf("        - %s\n", test_result.Source.Description))
 			}
-			sb.WriteString("\n")
 		}
 
 		for _, test_result := range suite_result.Failed {
 			test_failures = true
 			sb.WriteString("\n")
-			sb.WriteString(fmt.Sprintf("      FAILED: %s", test_result.Source.Name))
+			sb.WriteString(fmt.Sprintf("      FAILED: %s\n", test_result.Source.Name))
 			if config.Verbose {
-				sb.WriteString(fmt.Sprintf(" - %s", test_result.Source.Description))
+				sb.WriteString(fmt.Sprintf("        - %s\n", test_result.Source.Description))
 			}
-			sb.WriteString("\n")
 
 			if config.Verbose {
 
-				sb.WriteString(fmt.Sprintf("         Comparison: %s. Expected:[%s] Actual: [%s]\n",
+				// the TrimRight at the end is to make sure we don't have a dangling ] on a single line
+				sb.WriteString(fmt.Sprintf("        Comparison: %s. Expected:[%s] Actual: [%s]\n",
 					test_result.Source.Expects.ExpectationType,
 					test_result.Source.Expects.Target,
 					strings.TrimRight(test_result.Actual, "\r\n")))

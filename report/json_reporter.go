@@ -1,3 +1,6 @@
+/*
+Copyright © 2024 PACLabs
+*/
 package report
 
 import (

@@ -1,4 +1,12 @@
+/*
+Copyright © 2024 PACLabs
+*/
 package finder
+
+/*
+ *   Simple code for iterating over a command line file specification that may or may
+ *   not include wildcards and looking for .raygun files
+ */
 
 import (
 	"os"
@@ -10,6 +18,9 @@ type Finder struct {
 	extension string
 }
 
+/*
+ *  By default, the extension is .raygun
+ */
 func NewFinder(pExtension string) *Finder {
 
 	finder := &Finder{extension: pExtension}
@@ -18,6 +29,13 @@ func NewFinder(pExtension string) *Finder {
 
 }
 
+/*
+ *  This is a two step process - we get a set of command line arguments.  Each one may
+ *  be a file, a directory or a glob.
+ *
+ *  We work through these files and directories, looking for .raygun files, and build
+ *  out a complete list of every .raygun file we find.
+ */
 func (f Finder) FindTargets(entities []string) ([]string, error) {
 
 	directories := make([]string, 0)
@@ -36,6 +54,10 @@ func (f Finder) FindTargets(entities []string) ([]string, error) {
 
 			file_info, err := os.Stat(file)
 
+			//
+			// this could potentially be overruled by a flag --skip-on-file-error
+			// or something like that.  TBD
+			//
 			if err != nil {
 				log.Error("findTestSuites Error: %s", err)
 				return nil, err
@@ -53,21 +75,25 @@ func (f Finder) FindTargets(entities []string) ([]string, error) {
 
 	}
 
-	log.Debug("Directories to search for Raygun files: %v", directories)
+	log.Verbose("Directories to search for %s files: %v", f.extension, directories)
 
 	for _, dir := range directories {
 
 		file_info_list, err := os.ReadDir(dir)
 
 		if err != nil {
-			log.Verbose("Can't read %s, skipping", dir)
+			log.Verbose("Can't open directory %s, skipping", dir)
 			continue
 		}
 
 		for _, file_info := range file_info_list {
 
+			// this might be a place for another flag, indicating some sort of recursive
+			// directory search. The current structure wouldn't allow this, so we'll have
+			// to rewrite this section if it needs to support recursive searches
+			//
 			if file_info.IsDir() {
-				log.Verbose("Skipping subdirectories of %s", dir)
+				log.Debug("Skipping subdirectories of %s", dir)
 			} else {
 
 				if f.isTargetFile(file_info.Name()) {

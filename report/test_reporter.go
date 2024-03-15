@@ -1,4 +1,12 @@
+/*
+Copyright © 2024 PACLabs
+*/
 package report
+
+/*
+ *  This defines the generic interface for test reports, as well as some
+ *  common methods that can be re-ussed by the implementations
+ */
 
 import (
 	"raygun/log"
@@ -27,6 +35,8 @@ func Build(outputFormat string) TestReporter {
 type BaseReporter struct {
 }
 
+// we can save a few microns by making this a flag on the suite and on
+// the combined result, but that's not a priority
 func (br BaseReporter) TestFailuresExist(results types.CombinedResult) bool {
 
 	for _, suite_result := range results.ResultList {

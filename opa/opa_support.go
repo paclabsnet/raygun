@@ -1,3 +1,6 @@
+/*
+Copyright © 2024 PACLabs
+*/
 package opa
 
 import (
@@ -8,6 +11,9 @@ import (
 	"time"
 )
 
+/*
+ *  The configuration we need to start OPA
+ */
 type OpaConfig struct {
 	OpaPort    uint16
 	OpaPath    string
@@ -19,6 +25,9 @@ func (oc OpaConfig) String() string {
 	return fmt.Sprintf("exec: %s, bundle: %s, logs: %s", oc.OpaPath, oc.BundlePath, oc.LogPath)
 }
 
+/*
+ * Details about an OPA process that is about to start, or has started
+ */
 type OpaRunner struct {
 	Config  OpaConfig
 	Process *os.Process
@@ -50,10 +59,6 @@ func (opa *OpaRunner) Start() error {
 
 	log.Debug("OpaRunner.Start() - arg string: %v", args)
 
-	//	opa_log_file := filepath.ToSlash(opa.Config.LogPath)
-	//
-	//	log.Debug("OpaRunner.Start() - opening log file for opa at: %s", opa_log_file)
-
 	opaLog, err := os.Create(opa.Config.LogPath)
 
 	if err != nil {
@@ -61,20 +66,21 @@ func (opa *OpaRunner) Start() error {
 		return err
 	}
 
-	procAttr := new(os.ProcAttr)
-	procAttr.Files = []*os.File{os.Stdin, os.Stdout, opaLog}
+	process_attributes := new(os.ProcAttr)
+	process_attributes.Files = []*os.File{os.Stdin, os.Stdout, opaLog}
 
-	process, err := os.StartProcess(absolute_path, args, procAttr)
+	process, err := os.StartProcess(absolute_path, args, process_attributes)
 
 	if err != nil {
 		log.Error("Unable to start OPA: %s", err.Error())
 		return err
 	}
 
-	log.Debug("Started %s with process id: %d", commandToRun, process.Pid)
+	log.Debug("Started OPA via executable: %s . Process id: %d", commandToRun, process.Pid)
 
 	opa.Process = process
 
+	// I don't know that we have to wait a full second for this.  TBD
 	log.Debug("Waiting for 1 second for OPA to start up")
 	time.Sleep(1 * time.Second)
 

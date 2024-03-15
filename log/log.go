@@ -1,4 +1,11 @@
+/*
+Copyright © 2024 PACLabs
+*/
 package log
+
+/*
+ *  Simple logging, with printf formatting directives baked in.
+ */
 
 import (
 	"fmt"
@@ -39,6 +46,9 @@ func Error(format string, a ...any) {
 	}
 }
 
+/*
+ *  Unlike the others, fatal the program after printing the fatal error
+ */
 func Fatal(format string, a ...any) {
 	err_msg := fmt.Sprintf(format, a...)
 	fmt.Printf("FATAL: %s\n", err_msg)

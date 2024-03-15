@@ -1,3 +1,6 @@
+/*
+Copyright © 2024 PACLabs
+*/
 package runner
 
 import (
@@ -30,12 +33,12 @@ func (tr TestRunner) Post() (string, error) {
 
 	switch tr.Source.Input.InputType {
 	case "inline":
-		// we're readying directly from the .raygun file, and it may or may not already have
-		// the input key
+
+		// read the JSON data directly from the .raygun file
 		bodyString = optionally_add_input_key(tr.Source.Input.Value)
 	case "json-file":
 
-		// we're reading the data from a json file, which may or may not have an input tag already
+		// read the JSON data from a file
 		log.Debug("Suite Directory: %s , filename: %s", tr.Source.Suite.Directory, tr.Source.Input.Value)
 		tmp, err := util.ReadFile(tr.Source.Suite.Directory, tr.Source.Input.Value)
 		if err != nil {
@@ -48,33 +51,14 @@ func (tr TestRunner) Post() (string, error) {
 		return "", fmt.Errorf("unsupported input type: %s", tr.Source.Input.InputType)
 	}
 
-	//	log.Debug("BodyString: %s", bodyString)
+	return _post(postUrl, bodyString)
 
-	bodyBytes := []byte(bodyString)
-
-	response, err := http.Post(postUrl, "application/json", bytes.NewReader(bodyBytes))
-
-	if err != nil {
-		log.Error("Attempted to complete POST to %s with payload %s -> %s", postUrl, bodyString, err.Error())
-		return "", err
-	}
-
-	defer response.Body.Close()
-
-	builderBuffer := new(strings.Builder)
-
-	_, err = io.Copy(builderBuffer, response.Body)
-
-	if err != nil {
-		log.Error("Error reading body of response: %s", err.Error())
-		return "", err
-	}
-
-	log.Debug("Response Content: %s", builderBuffer.String())
-
-	return builderBuffer.String(), nil
 }
 
+/*
+ *  This is the most meaningful step of the entire process - does the response from OPA
+ *  match the expectations defined in the test case
+ */
 func (tr TestRunner) Evaluate(response string) (types.TestResult, error) {
 
 	result := types.TestResult{}
@@ -112,5 +96,36 @@ func optionally_add_input_key(json string) string {
 	}
 
 	return fmt.Sprintf("{\"input\":%s}", json)
+
+}
+
+/*
+ *  the core implementation of the http post and returning the response
+ */
+func _post(url string, body string) (string, error) {
+
+	bodyBytes := []byte(body)
+
+	response, err := http.Post(url, "application/json", bytes.NewReader(bodyBytes))
+
+	if err != nil {
+		log.Error("Attempted to complete POST to %s with payload %s -> %s", url, body, err.Error())
+		return "", err
+	}
+
+	defer response.Body.Close()
+
+	builderBuffer := new(strings.Builder)
+
+	_, err = io.Copy(builderBuffer, response.Body)
+
+	if err != nil {
+		log.Error("Error reading body of response: %s", err.Error())
+		return "", err
+	}
+
+	log.Debug("Response Content: %s", builderBuffer.String())
+
+	return builderBuffer.String(), nil
 
 }

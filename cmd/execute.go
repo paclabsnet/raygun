@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 John Brothers <johnbr@paclabs.net>
+Copyright © 2024 PACLabs
 */
 package cmd
 
@@ -25,10 +25,11 @@ import (
 		* one or more TestRecords
 		b. TestRecords contain:
 		* Name
-		* Invocation Path (i.e. the URL we use for calling OPA to get the decision)
-		* Input JSON (embedded in .raygun file)
+		* Description
+		* Decision Path (i.e. the URL we use for calling OPA to get the decision)
+		* Input JSON (embedded in .raygun file or found in external files)
 		* Expected Output, in one format for now:
-			* substring: "allow": true       (this is a string match, stripping all whitespace)
+			* substring match
 			* eventually we might include JSONPath as well
 
 	2. We iterate over the TestSuite records
@@ -38,38 +39,37 @@ import (
 			* if OPA is running with the wrong configuration, shut it down
 			* start up OPA with the right configuration
 		b. We iterate over the TestRecords
-			* we call OPA on the specified Invocation Path, and pass in the specified Input JSON
+			* we call OPA at the specified Decision Path, and pass in the specified Input JSON
 			* We accept the response
-			* We compare the response to our match
-			* If the match fails, we generate a message including the test name, the expected & actual output
-		c. After all the TestRecords have been run, we determine if all of the TestRecords have passed (or not)
-			* If they all passed, we generate a message including the testsuite name, and the word PASS and the count of tests
-			* If any failed, we generate a message including the testsuite name, the word FAIL and the failed and total test record count
+			* We take the response and substring and strip out all spaces
+			* We compare the stripped response to our stripped substring to see if there's a match
+			* We track the expected result, actual result and outcome for the report
+		c. After all the TestRecords have been processed, we create a report for the Test Suite.
 
+	4. Once all the TestSuites have been run, we generate a report  (text or json)
+	        * For each Test Suite
+				* We list all the tests that were skipped
+				* We list all the tests that passed
+				* We list all the tests that failed
+					- in verbose mode, we'll print out more details, including the expected and actual
+			* If there were test failures, we return with an error code
 
-	3. Once all of the TestSuites have been run, we determine if there were any failures
-		a.  If there were any failures, we generate a message including "There were test failures:" and the number of failures
-		b.  Otherwise, we generate a message including "All tests passed: " and the number of tests executed
-
-
-	special cases:
-	* OPA isn't running
-	* honor --stop-on-fail and --skip-network-error  (in that order)
-	* One of the test suites or test records does not have all of the required information
-	* by default, stop immediately
-	* honor --skip-parse-error
 
 
 
 	Full set of command line arguments:
-	--opa-exec  = location of opa executable  (skip for now)
-	--opa-port  = port number to run OPA by default   (8181 for now)
-	--opa-bundle-path = location of bundle file (includes filename)  (skip for now)
-	--opa-log  = location of opa log file  (/tmp/raygun-opa-<DATE_TIME>.log for now)
+	--opa-exec  = location of opa executable . If not specified, look up RAYGUN_OPA_EXEC
+	--opa-bundle-path = location of bundle file (includes filename)
+	--opa-log  = location of opa log file  ($TMP/raygun-opa.log for now)
 
-	--stop-on-fail         (continue on fail is default)
-	--skip-parse-error     (stop immediately on parse error is default)
-	--skip-network-error   (mark the test failed by default)
+	--stop-on-failure       (continue on fail is default)
+	--skip-on-parse-error   (stop immediately on parse error is default)
+	--skip-on-network-error (mark the test failed by default)
+
+	--report-format - text (default) or json
+
+    -d --debug
+	-v --verbose
 
 */
 
@@ -90,6 +90,9 @@ var executeCmd = &cobra.Command{
 			entities = append(entities, args...)
 		}
 
+		/*
+		 *  Find the raygun files amidst the files and directories specified on the command line
+		 */
 		finder := finder.NewFinder(config.RaygunExtension)
 
 		suite_files, err := finder.FindTargets(entities)
@@ -104,9 +107,13 @@ var executeCmd = &cobra.Command{
 			os.Exit(2)
 		}
 
+		/*
+		 *  Parse the .raygun files that we found in the previous step
+		 */
+
 		log.Verbose("Parsing Raygun files: %v", suite_files)
 
-		parser := parser.New(config.SkipOnParseError)
+		parser := parser.NewRaygunParser(config.SkipOnParseError)
 
 		test_suite_list, err := parser.Parse(suite_files)
 
@@ -125,10 +132,12 @@ var executeCmd = &cobra.Command{
 			}
 		}
 
-		// create and execute the test-suite runner. It returns the combined
-		// results from all of the test suites.
-		//
-		// if config.StopOnFailure is true, this will have a partial set of results
+		/*
+			create and execute the test-suite runner. It returns the combined
+			results from all of the test suites.
+
+			if config.StopOnFailure is true, this will have a partial set of results
+		*/
 
 		suiteRunner := runner.NewSuiteRunner(test_suite_list)
 
@@ -139,6 +148,9 @@ var executeCmd = &cobra.Command{
 			return err
 		}
 
+		/*
+		 *  Generate an output report from the test results
+		 */
 		reporter := report.Build(config.ReportFormat)
 
 		output := reporter.Generate(results)
@@ -160,13 +172,4 @@ var executeCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(executeCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// runCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

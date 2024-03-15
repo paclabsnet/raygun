@@ -1,4 +1,16 @@
+/*
+Copyright © 2024 PACLabs
+*/
 package parser
+
+/*
+ *   Parses the .raygun files (YAML) and validates that they have the information
+ *   we need to create test suites and cases
+ *
+ *   I elected for a map-based approach instead of using the automatic marshall/unmarshall
+ *   of structures, because I wanted to be able to do more in-depth validation.  It also
+ *
+ */
 
 import (
 	"errors"
@@ -21,11 +33,15 @@ type RaygunParser struct {
   To execute an OPA query, we POST to /v1/data/{OpaRuleUrlPath}
 */
 
-func New(skip_on_parse_error bool) *RaygunParser {
+func NewRaygunParser(skip_on_parse_error bool) *RaygunParser {
 	p := &RaygunParser{SkipOnParseError: skip_on_parse_error}
 
 	return p
 }
+
+/*
+ * Struct Methods for RaygunParser
+ */
 
 func (parser *RaygunParser) Parse(raygun_file_list []string) ([]types.TestSuite, error) {
 
@@ -56,11 +72,18 @@ and strings that come out of that process
 */
 func (parser *RaygunParser) ParseSuiteFile(suite_file_path string) (types.TestSuite, error) {
 
-	// make sure the filepath is in the OS-dependent format
+	// make sure the directory is in the os-friendly format, so users can reference
+	// bundles and input files relative to that directory, instead of relative to
+	// where raygun is running.
+	//
 	suite := types.TestSuite{Directory: filepath.Dir(suite_file_path)}
 	suite.Tests = make([]types.TestRecord, 0)
 
 	tree := make(map[string]interface{})
+
+	/*
+	 *  Find and parse the YAML content of the .raygun file
+	 */
 
 	yamlFile, err := os.ReadFile(suite_file_path)
 	if err != nil {
@@ -82,6 +105,9 @@ func (parser *RaygunParser) ParseSuiteFile(suite_file_path string) (types.TestSu
 		}
 	}
 
+	/*
+	 *  Now we can parse the tree of YAML nodes to create our Test Suite
+	 */
 	log.Debug("Filepath is: %s, Suite Directory: %s", suite_file_path, suite.Directory)
 
 	err = parser.yamlToSuite(&suite, tree)
@@ -102,18 +128,19 @@ func (parser *RaygunParser) ParseSuiteFile(suite_file_path string) (types.TestSu
  */
 func (p RaygunParser) yamlToSuite(suite *types.TestSuite, tree map[string]interface{}) error {
 
-	sorted_keys := util.SortMapKeys(tree)
-
+	// set up defaults, in case the .raygun file doesn't specify some or all of these
+	// values
 	suite.Opa.OpaPort = config.OpaPort
 	suite.Opa.OpaPath = config.OpaExecutablePath
 	suite.Opa.BundlePath = config.OpaBundlePath
 	suite.Opa.LogPath = config.OpaLogPath
 
-	for _, k := range sorted_keys {
+	//
+	//  sorting the keys helps ensure they're in a consistent order from run to run
+	//
+	for _, k := range util.SortMapKeys(tree) {
 
 		v := tree[k]
-
-		//		log.Debug("raygun file: key: %s has value: %v", k, v)
 
 		switch k {
 		case "opa":
@@ -136,6 +163,8 @@ func (p RaygunParser) yamlToSuite(suite *types.TestSuite, tree map[string]interf
 
 	}
 
+	// validate the suite
+
 	if suite.Name == "" {
 		return errors.New("suite name (the suite: element) is required")
 	}
@@ -153,20 +182,16 @@ func (p RaygunParser) yamlToSuite(suite *types.TestSuite, tree map[string]interf
  */
 func (p RaygunParser) yamlToOpaConfig(suite *types.TestSuite, tree map[string]interface{}) error {
 
-	sorted_keys := util.SortMapKeys(tree)
-
-	for _, k := range sorted_keys {
+	for _, k := range util.SortMapKeys(tree) {
 
 		v := tree[k]
-
-		//		log.Debug("raygun file opa configuration: key: %s has value: %v", k, v)
 
 		switch k {
 		case "path":
 			suite.Opa.OpaPath = v.(string)
 		case "bundle-path":
 			suite.Opa.BundlePath = filepath.Join(suite.Directory, v.(string))
-			log.Debug("OPA BundlePath is: %s.  Suite Directory is: %s", suite.Opa.BundlePath, suite.Directory)
+			log.Debug("OPA BundlePath is: %s", suite.Opa.BundlePath)
 		default:
 			return fmt.Errorf("unknown/unsupported opa config key: %s", k)
 		}
@@ -192,15 +217,14 @@ func (p RaygunParser) yamlToTestArray(suite *types.TestSuite, test_array []inter
 
 }
 
+/*
+ *  Process the individual test subrecords
+ */
 func (p RaygunParser) yamlToTest(suite *types.TestSuite, tree map[string]interface{}) error {
-
-	//	log.Debug("test info: %v", tree)
 
 	test := types.TestRecord{Suite: *suite}
 
-	sorted_keys := util.SortMapKeys(tree)
-
-	for _, k := range sorted_keys {
+	for _, k := range util.SortMapKeys(tree) {
 
 		v := tree[k]
 
@@ -231,9 +255,7 @@ func (p RaygunParser) yamlToTest(suite *types.TestSuite, tree map[string]interfa
  */
 func (p RaygunParser) yamlToExpectations(test *types.TestRecord, tree map[string]interface{}) error {
 
-	sorted_keys := util.SortMapKeys(tree)
-
-	for _, k := range sorted_keys {
+	for _, k := range util.SortMapKeys(tree) {
 
 		v := tree[k]
 
@@ -251,13 +273,15 @@ func (p RaygunParser) yamlToExpectations(test *types.TestRecord, tree map[string
 }
 
 /*
- * Process the input - raw json or a filename
+ * Process where to find the input.
+ *
+ * type:
+ *   inline - a JSON string embedded in the .raygun file
+ *   json-file - a reference to an external JSON file to be read at test time.
  */
 func (p RaygunParser) yamlToInputJSON(test *types.TestRecord, tree map[string]interface{}) error {
 
-	sorted_keys := util.SortMapKeys(tree)
-
-	for _, k := range sorted_keys {
+	for _, k := range util.SortMapKeys(tree) {
 
 		v := tree[k]
 
@@ -273,179 +297,3 @@ func (p RaygunParser) yamlToInputJSON(test *types.TestRecord, tree map[string]in
 
 	return nil
 }
-
-// elements := strings.Split(*data, "#")
-
-// log.Debug("RaygunParser: ParseSuiteFile: found elements: %d : %v\n", len(elements), elements)
-
-// for count, element := range elements {
-
-// 	log.Debug("RaygunParser: ParseSuiteFile: parsing element: %d -> %s", count, element)
-
-// 	element = strings.TrimSpace(element)
-
-// 	if len(element) == 0 {
-// 		continue
-// 	}
-
-// 	header, body, err := util.SplitHeaderAndBody(element)
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	switch *header {
-// 	case "Name":
-// 		suite.Name = util.Chomp(*body)
-// 	case "Description":
-// 		suite.SuiteDescription = strings.TrimSpace(*body)
-// 	case "Data":
-// 		tmp := strings.TrimSpace(*body)
-// 		details.OpaData = &tmp
-// 	case "Rule URL Path":
-// 		tmp := strings.TrimSpace(*body)
-// 		details.RuleUrlPath = &tmp
-// 	case "Rego Source Files":
-// 		details.RegoSourceFiles = util.Listify(*body)
-// 		log.Debug("RayParser: ParseSuiteFile: RegoSourceFiles: %v", details.RegoSourceFiles)
-// 	case "OPA Executable Path":
-// 		tmp := strings.TrimSpace(*body)
-// 		details.OpaExecutablePath = &tmp
-// 	case "OPA Working Directory":
-// 		tmp := strings.TrimSpace(*body)
-// 		details.OpaWorkingDirectory = &tmp
-// 	case "With Test Files":
-// 		file_list := make([]string, 0)
-// 		glob_list := util.Listify(*body)
-
-// 		log.Debug("RayParser: ParseSuiteFile: glob_list: %v", glob_list)
-
-// 		for _, filename_glob := range glob_list {
-
-// 			fullPath := filepath.Join(path, filename_glob)
-
-// 			if strings.Contains(fullPath, "*") {
-
-// 				log.Debug("RayParser: ParseSuiteFile: matching for file glob: %s", fullPath)
-
-// 				matches, err := filepath.Glob(fullPath)
-
-// 				if err != nil {
-// 					return nil, err
-// 				}
-
-// 				file_list = append(file_list, matches...)
-
-// 			} else {
-// 				file_list = append(file_list, fullPath)
-// 			}
-
-// 		}
-
-// 		details.RaygunTestFiles = file_list
-
-// 		log.Debug("RayParswer: ParseSuiteFile: RaygunTestFiles: %v", details.RaygunTestFiles)
-// 	}
-
-// }
-
-// // if there are no test files, we'll try again with a simple glob of the entire working
-// // directory for the suite
-// if len(details.RaygunTestFiles) == 0 {
-// 	details.RaygunTestFiles, err = filepath.Glob(filepath.Join(path, "*."+config.RaygunExtension))
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// }
-
-// // if there are still no test files, we can't really do anything
-// if len(details.RaygunTestFiles) == 0 {
-// 	return nil, errors.New("no_test_files_found")
-// }
-
-// log.Debug("RayParser: parse_suite: Successfully parsed suite file: %+v", details)
-// if details.OpaData != nil {
-// 	log.Debug("RayParser: parse_suite: OpaData is: %s", *details.OpaData)
-// }
-
-// func (parser *RayParser) ParseTestFile(fullPath string, suite *types.SuiteDetails) (*types.TestDetails, error) {
-// 	log.Debug("RayParser: ParseTestFile: filename: %s", fullPath)
-
-// 	data, err := util.ReadFile(filepath.Join(fullPath))
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	elements := strings.Split(*data, "#")
-
-// 	log.Debug("RayParser: ParseTestFile: found elements: %d : %v\n", len(elements), elements)
-
-// 	testDetails := &types.TestDetails{}
-
-// 	for count, element := range elements {
-
-// 		log.Debug("RayParser: ParseTestFile: parsing element: %d -> %s", count, element)
-
-// 		element = strings.TrimSpace(element)
-
-// 		if len(element) == 0 {
-// 			continue
-// 		}
-
-// 		header, body, err := util.SplitHeaderAndBody(element)
-
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		switch *header {
-// 		case "Name":
-// 			testDetails.Name = util.Chomp(*body)
-// 		case "Description":
-// 			testDetails.Description = strings.TrimSpace(*body)
-// 		case "Data":
-// 			tmp := strings.TrimSpace(*body)
-// 			testDetails.Data = &tmp
-// 		case "Expects":
-// 			expectations, err := buildExpectations(*body)
-// 			if err != nil {
-// 				log.Error("RayParser: ParseTestFile: unable to process expectations: %s", *body)
-// 				return nil, err
-// 			}
-// 			testDetails.Expects = expectations
-// 		case "Input":
-// 			testDetails.Input = strings.TrimSpace(*body)
-// 		case "Rule URL Path":
-// 			tmp := strings.TrimSpace(*body)
-// 			testDetails.RuleUrlPath = &tmp
-// 		}
-// 	}
-
-// 	log.Debug("RayParser: parse_suite: Successfully parsed test file: %+v", testDetails)
-// 	if testDetails.Expects != nil {
-// 		log.Debug("RayParser: parse_suite: Expectations: %+v", *testDetails.Expects)
-// 		if testDetails.Expects.Json != nil {
-// 			log.Debug("RayParser: parse_suite: Expects JSON: %+v", *testDetails.Expects.Json)
-// 		}
-// 	}
-// 	if testDetails.RuleUrlPath != nil {
-// 		log.Debug("RayParser: parse_suite: Rule URL Path: %+v", *testDetails.RuleUrlPath)
-// 	}
-
-// 	return testDetails, nil
-// }
-
-// // partial implementation for now
-// func buildExpectations(body string) (*types.TestExpectations, error) {
-
-// 	log.Warning("RayParser: buildExpectations: partial implementation (JSON only)")
-
-// 	var te = &types.TestExpectations{
-// 		Format: "json",
-// 		Json:   &body,
-// 	}
-
-// 	return te, nil
-// }

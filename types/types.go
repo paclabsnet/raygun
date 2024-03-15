@@ -1,4 +1,11 @@
+/*
+Copyright © 2024 PACLabs
+*/
 package types
+
+/*
+ *  all of the test-related structs we need for this project
+ */
 
 import (
 	"fmt"
