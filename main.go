@@ -29,6 +29,8 @@ import (
 
 */
 
+// Version is in cmd/root.go
+
 func main() {
 
 	cmd.Execute()
