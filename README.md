@@ -37,6 +37,7 @@
 ### Helpful flags
 
 ```-d``` or ```--debug``` for debug logs
+
 ```-v``` or ```--verbose``` for verbose (more detail for failures)
 
 set the environment variable RAYGUN_OPA_EXEC if it isn't "opa"
