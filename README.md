@@ -28,7 +28,7 @@
 * put the executable somewhere in your path
 * make sure you have OPA somewhere on your path
 * use OPA to build a bundle.tar.gz of Rego code & data
-* create a .raygun test case, using the examples as a starting point
+* create a .raygun test case, using the examples in sample/ as a starting point
    * determine the appropriate URL path for the policy you want to test
    * create the appropriate input json
    * identify what you expect the output to be and determine the substring of that output that indicates that the policy behaved the way you expected
