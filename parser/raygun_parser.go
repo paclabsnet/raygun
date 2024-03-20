@@ -230,15 +230,33 @@ func (p RaygunParser) yamlToTest(suite *types.TestSuite, tree map[string]interfa
 
 		switch k {
 		case "name":
-			test.Name = v.(string)
+			if util.IsString(v) {
+				test.Name = v.(string)
+			} else {
+				return fmt.Errorf("Invalid test name type: %v, expecting string", v)
+			}
 		case "description":
-			test.Description = v.(string)
+			if util.IsString(v) {
+				test.Description = v.(string)
+			} else {
+				return fmt.Errorf("Invalid test description type: %v, expecting string", v)
+			}
 		case "decision-path":
-			test.DecisionPath = v.(string)
+			if util.IsString(v) {
+				test.DecisionPath = v.(string)
+			} else {
+				return fmt.Errorf("Invalid test DecisionPath type: %v, expecting string", v)
+			}
 		case "expects":
-			p.yamlToExpectations(&test, v.(map[string]interface{}))
+			err := p.yamlToExpectations(&test, v.(map[string]interface{}))
+			if err != nil {
+				return err
+			}
 		case "input":
-			p.yamlToInputJSON(&test, v.(map[string]interface{}))
+			err := p.yamlToInputJSON(&test, v.(map[string]interface{}))
+			if err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("test parser: unknown/unsupported key %s", k)
 		}
@@ -261,9 +279,17 @@ func (p RaygunParser) yamlToExpectations(test *types.TestRecord, tree map[string
 
 		switch k {
 		case "type":
-			test.Expects.ExpectationType = v.(string)
+			if util.IsString(v) {
+				test.Expects.ExpectationType = v.(string)
+			} else {
+				return fmt.Errorf("invalid Expects.ExpectationType value: %v, expecting string", v)
+			}
 		case "target":
-			test.Expects.Target = v.(string)
+			if util.IsString(v) {
+				test.Expects.Target = v.(string)
+			} else {
+				return fmt.Errorf("Invalid Expects.Target value: %v, expecting string", v)
+			}
 		default:
 			return fmt.Errorf("unknown/unsupported 'expects' section key: %s", k)
 		}
@@ -287,9 +313,17 @@ func (p RaygunParser) yamlToInputJSON(test *types.TestRecord, tree map[string]in
 
 		switch k {
 		case "type":
-			test.Input.InputType = v.(string)
+			if util.IsString(v) {
+				test.Input.InputType = v.(string)
+			} else {
+				return fmt.Errorf("Invalid input type value %v, expecting string", v)
+			}
 		case "value":
-			test.Input.Value = v.(string)
+			if util.IsString(v) {
+				test.Input.Value = v.(string)
+			} else {
+				return fmt.Errorf("invalid input Value: %v, expecting string", v)
+			}
 		default:
 			return fmt.Errorf("unknown/unsupported 'input' section key: %s", k)
 		}

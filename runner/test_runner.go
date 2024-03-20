@@ -104,6 +104,9 @@ func optionally_add_input_key(json string) string {
  */
 func _post(url string, body string) (string, error) {
 
+	log.Debug("Request URL: %s", url)
+	log.Debug("Request Content: \n%s", body)
+
 	bodyBytes := []byte(body)
 
 	response, err := http.Post(url, "application/json", bytes.NewReader(bodyBytes))
