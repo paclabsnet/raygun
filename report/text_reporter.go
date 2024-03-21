@@ -24,7 +24,7 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 
 	sb.WriteString("Test Results:\n")
 
-	test_failures := false
+	failureCount := 0
 
 	for _, suite_result := range results.ResultList {
 
@@ -50,7 +50,7 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 		}
 
 		for _, test_result := range suite_result.Failed {
-			test_failures = true
+			failureCount++
 			sb.WriteString("\n")
 			sb.WriteString(fmt.Sprintf("      FAILED: %s\n", test_result.Source.Name))
 			if config.Verbose {
@@ -71,9 +71,9 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 
 	}
 
-	if test_failures {
+	if failureCount > 0 {
 		sb.WriteString("\n")
-		sb.WriteString("WARNING: There are test failures\n")
+		sb.WriteString(fmt.Sprintf("WARNING: There are test failures: %d\n", failureCount))
 	}
 
 	return sb.String()
