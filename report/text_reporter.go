@@ -25,6 +25,9 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 	sb.WriteString("Test Results:\n")
 
 	failureCount := 0
+	passedCount := 0
+	skippedCount := 0
+	totalCount := 0
 
 	for _, suite_result := range results.ResultList {
 
@@ -37,12 +40,16 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 		}
 
 		for _, test_result := range suite_result.Skipped {
+			skippedCount++
+			totalCount++
 			sb.WriteString(fmt.Sprintf("      SKIPPED: %s\n", test_result.Source.Name))
 			if config.Verbose {
 				sb.WriteString(fmt.Sprintf("        - %s\n", test_result.Source.Description))
 			}
 		}
 		for _, test_result := range suite_result.Passed {
+			passedCount++
+			totalCount++
 			sb.WriteString(fmt.Sprintf("      PASSED: %s\n", test_result.Source.Name))
 			if config.Verbose {
 				sb.WriteString(fmt.Sprintf("        - %s\n", test_result.Source.Description))
@@ -51,6 +58,7 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 
 		for _, test_result := range suite_result.Failed {
 			failureCount++
+			totalCount++
 			sb.WriteString("\n")
 			sb.WriteString(fmt.Sprintf("      FAILED: %s\n", test_result.Source.Name))
 			if config.Verbose {
@@ -75,9 +83,16 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 
 	}
 
+	sb.WriteString("\n")
+
 	if failureCount > 0 {
-		sb.WriteString("\n")
 		sb.WriteString(fmt.Sprintf("WARNING: There are test failures: %d\n", failureCount))
+	} else {
+
+		sb.WriteString(fmt.Sprintf("Tests Run: %d. Tests Passed: %d. Tests Skipped: %d.\n",
+			totalCount,
+			passedCount,
+			skippedCount))
 	}
 
 	return sb.String()
