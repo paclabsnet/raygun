@@ -65,6 +65,10 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 					test_result.Source.Expects.Target,
 					strings.TrimRight(test_result.Actual, "\r\n")))
 
+				if test_result.Source.Input.InputType == "json-file" {
+					sb.WriteString(fmt.Sprintf("        Input File: %s\n", test_result.Source.Input.Value))
+				}
+
 			}
 			sb.WriteString("\n")
 		}
