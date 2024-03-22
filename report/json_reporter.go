@@ -69,6 +69,9 @@ func generate_aggregate_test_reports(test_list []types.TestResult) []interface{}
 			report["expected"] = test_result.Source.Expects.Target
 			report["actual"] = strings.TrimRight(test_result.Actual, "\r\n")
 		}
+		if config.PerformanceMetrics {
+			report["durationMicroseconds"] = test_result.Duration.Microseconds()
+		}
 
 		aggregate_test_report = append(aggregate_test_report, report)
 	}

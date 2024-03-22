@@ -13,6 +13,7 @@ import (
 	"raygun/log"
 	"raygun/opa"
 	"raygun/types"
+	"time"
 )
 
 type SuiteRunner struct {
@@ -91,9 +92,11 @@ func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestS
 
 		testRunner := NewTestRunner(test)
 
+		testResult := types.TestResult{Source: test}
+
+		testStartTime := time.Now()
 		response, network_err := testRunner.Post()
 
-		testResult := types.TestResult{Source: test}
 		var eval_err error = nil
 
 		if network_err != nil {
@@ -105,6 +108,7 @@ func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestS
 			}
 
 		} else {
+			testEndTime := time.Now()
 
 			testResult, eval_err = testRunner.Evaluate(response)
 
@@ -115,6 +119,10 @@ func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestS
 				log.Error("Failed to evaluate response from OPA: %s", eval_err.Error())
 				return results, eval_err
 			}
+
+			testResult.Start = testStartTime
+			testResult.End = testEndTime
+			testResult.Duration = testEndTime.Sub(testStartTime)
 		}
 
 		switch testResult.Status {

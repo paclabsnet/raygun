@@ -10,6 +10,7 @@ package types
 import (
 	"fmt"
 	"raygun/opa"
+	"time"
 )
 
 type TestSuite struct {
@@ -58,9 +59,12 @@ func (tsr TestSuiteResult) String() string {
 }
 
 type TestResult struct {
-	Source TestRecord
-	Actual string
-	Status string // fail, pass, skip
+	Source   TestRecord
+	Actual   string
+	Status   string // fail, pass, skip
+	Start    time.Time
+	End      time.Time
+	Duration time.Duration
 }
 
 func (tr TestResult) String() string {

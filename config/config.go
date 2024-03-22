@@ -24,19 +24,25 @@ var StopOnFailure bool = false
 var SkipOnParseError bool = false
 var SkipOnNetworkError bool = false
 var RaygunExtension = DEFAULT_RAYGUN_EXTENSION
+
 var ReportFormat = "text"
+
 var OpaPort = STANDARD_OPA_PORT
 var OpaExecutablePath = FindOpaExecutable("opa")
-
 var OpaBundlePath = "bundle.tar.gz"
 var OpaLogPath = filepath.FromSlash(fmt.Sprintf("%s/raygun_opa.log", os.Getenv("TMP")))
 
+// performance
+var PerformanceMetrics bool = false
+
+// core concepts in a testing program
 const PASS = "pass"
 const FAIL = "fail"
 const SKIP = "skip"
 
-//var RaysuiteExtension = DEFAULT_RAYSUITE_EXTENSION
-
+/**********************************************
+ *  These are probably superfluous at this point  (2024-03-22)
+ */
 func SetDebug(v bool) {
 	Debug = v
 }
@@ -72,6 +78,10 @@ func SetSkipOnNetworkError(v bool) {
 func SetOpaExecutablePath(path string) {
 	OpaExecutablePath = path
 }
+
+/*
+ * end superfluous section
+ ***********************************************/
 
 func FindOpaExecutable(defaultOpa string) string {
 

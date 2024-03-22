@@ -13,7 +13,7 @@ import (
 var verbose bool
 var debug bool
 
-var Version = "v0.1.2"
+var Version = "v0.1.3"
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -51,12 +51,19 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&config.SkipOnNetworkError, "skip-on-network-failure", false, "skip tests that fail because of OPA connectivity issues")
 	rootCmd.PersistentFlags().BoolVar(&config.SkipOnParseError, "skip-on-parse-failure", false, "skip Raygun files that aren't valid YAML")
 
+	//
+	// flags related to OPA
+	//
 	rootCmd.PersistentFlags().StringVar(&config.OpaExecutablePath, "opa-exec",
 		config.FindOpaExecutable("opa"),
 		"OPA executable. Consider env var: RAYGUN_OPA_EXEC")
 	rootCmd.PersistentFlags().StringVar(&config.OpaLogPath, "opa-log", config.OpaLogPath, "Location of the OPA log file")
 
+	// flags related to the output format
 	rootCmd.PersistentFlags().StringVar(&config.ReportFormat, "report-format",
 		config.ReportFormat, "Format of the test completion report (text, json)")
+
+	// flags related to performance
+	rootCmd.PersistentFlags().BoolVar(&config.PerformanceMetrics, "perf-metrics", false, "Measure the time required for each call & report")
 
 }
