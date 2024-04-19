@@ -1,5 +1,7 @@
 # raygun
 
+Current Version: 0.1.4
+
 ## What does this project do?
    Raygun is a tool for testing Rego policy against OPA servers in a way that resembles a "real-world" usage.  Specifically:
 
