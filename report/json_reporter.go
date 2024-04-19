@@ -44,7 +44,7 @@ func generate_aggregate_suite_reports(list []types.TestSuiteResult) []interface{
 
 		suite_report["name"] = suite_result.Source.Name
 
-		suite_report["SKIPED"] = generate_aggregate_test_reports(suite_result.Skipped)
+		suite_report["SKIPPED"] = generate_aggregate_test_reports(suite_result.Skipped)
 		suite_report["PASSED"] = generate_aggregate_test_reports(suite_result.Passed)
 		suite_report["FAILED"] = generate_aggregate_test_reports(suite_result.Failed)
 
@@ -65,9 +65,20 @@ func generate_aggregate_test_reports(test_list []types.TestResult) []interface{}
 		report["name"] = test_result.Source.Name
 		report["description"] = test_result.Source.Description
 		if test_result.Status == config.FAIL {
-			report["comparison"] = test_result.Source.Expects.ExpectationType
-			report["expected"] = test_result.Source.Expects.Target
+
+			var comparison_type_array []string = make([]string, 0)
+			var expected_value_array []string = make([]string, 0)
+
 			report["actual"] = strings.TrimRight(test_result.Actual, "\r\n")
+
+			for _, expectation := range test_result.Source.Expects {
+				comparison_type_array = append(comparison_type_array, expectation.ExpectationType)
+				expected_value_array = append(expected_value_array, expectation.Target)
+			}
+
+			report["comparison_type"] = comparison_type_array
+			report["expected_value"] = expected_value_array
+
 		}
 		if config.PerformanceMetrics {
 			report["durationMicroseconds"] = test_result.Duration.Microseconds()

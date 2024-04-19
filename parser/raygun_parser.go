@@ -233,24 +233,31 @@ func (p RaygunParser) yamlToTest(suite *types.TestSuite, tree map[string]interfa
 			if util.IsString(v) {
 				test.Name = v.(string)
 			} else {
-				return fmt.Errorf("Invalid test name type: %v, expecting string", v)
+				return fmt.Errorf("invalid test name type: %v, expecting string", v)
 			}
 		case "description":
 			if util.IsString(v) {
 				test.Description = v.(string)
 			} else {
-				return fmt.Errorf("Invalid test description type: %v, expecting string", v)
+				return fmt.Errorf("invalid test description type: %v, expecting string", v)
 			}
 		case "decision-path":
 			if util.IsString(v) {
 				test.DecisionPath = v.(string)
 			} else {
-				return fmt.Errorf("Invalid test DecisionPath type: %v, expecting string", v)
+				return fmt.Errorf("invalid test DecisionPath type: %v, expecting string", v)
 			}
 		case "expects":
-			err := p.yamlToExpectations(&test, v.(map[string]interface{}))
-			if err != nil {
-				return err
+			if util.IsArray(v) {
+				err := p.yamlToExpectationsArray(&test, v.([]interface{}))
+				if err != nil {
+					return err
+				}
+			} else if util.IsMap(v) {
+				err := p.yamlToExpectationsMap(&test, v.(map[string]interface{}))
+				if err != nil {
+					return err
+				}
 			}
 		case "input":
 			err := p.yamlToInputJSON(&test, v.(map[string]interface{}))
@@ -269,9 +276,34 @@ func (p RaygunParser) yamlToTest(suite *types.TestSuite, tree map[string]interfa
 }
 
 /*
- * Process the test expectations
+ * after writing this originally with explicit elements for type and target, I
+ * realized that there was a nice implicit shorthand provided by allowing
+ * for the type to be the key, and the value to be interpreted as the target
+ *
+ * But I don't want to break existing .raygun files so I want to support both
  */
-func (p RaygunParser) yamlToExpectations(test *types.TestRecord, tree map[string]interface{}) error {
+func (p RaygunParser) yamlToExpectationsArray(test *types.TestRecord, tree_array []interface{}) error {
+
+	for _, element := range tree_array {
+
+		tree := element.(map[string]interface{})
+
+		err := p.yamlToExpectationsMap(test, tree)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+/*
+ * Process a single TestExpectations map
+ */
+func (p RaygunParser) yamlToExpectationsMap(test *types.TestRecord, tree map[string]interface{}) error {
+
+	test.Expects = append(test.Expects, types.TestExpectation{})
 
 	for _, k := range util.SortMapKeys(tree) {
 
@@ -280,15 +312,27 @@ func (p RaygunParser) yamlToExpectations(test *types.TestRecord, tree map[string
 		switch k {
 		case "type":
 			if util.IsString(v) {
-				test.Expects.ExpectationType = v.(string)
+
+				test.Expects[len(test.Expects)-1].ExpectationType = v.(string)
+
 			} else {
 				return fmt.Errorf("invalid Expects.ExpectationType value: %v, expecting string", v)
 			}
 		case "target":
 			if util.IsString(v) {
-				test.Expects.Target = v.(string)
+
+				test.Expects[len(test.Expects)-1].Target = v.(string)
 			} else {
-				return fmt.Errorf("Invalid Expects.Target value: %v, expecting string", v)
+				return fmt.Errorf("invalid Expects.Target value: %v, expecting string", v)
+			}
+		case "substring":
+			if util.IsString(v) {
+
+				test.Expects[len(test.Expects)-1].ExpectationType = "substring"
+				test.Expects[len(test.Expects)-1].Target = v.(string)
+
+			} else {
+				return fmt.Errorf("invalid substring value: %v, expecting string", v)
 			}
 		default:
 			return fmt.Errorf("unknown/unsupported 'expects' section key: %s", k)
@@ -316,7 +360,7 @@ func (p RaygunParser) yamlToInputJSON(test *types.TestRecord, tree map[string]in
 			if util.IsString(v) {
 				test.Input.InputType = v.(string)
 			} else {
-				return fmt.Errorf("Invalid input type value %v, expecting string", v)
+				return fmt.Errorf("invalid input type value %v, expecting string", v)
 			}
 		case "value":
 			if util.IsString(v) {

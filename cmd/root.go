@@ -13,7 +13,7 @@ import (
 var verbose bool
 var debug bool
 
-var Version = "v0.1.3"
+var Version = "v0.1.4"
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

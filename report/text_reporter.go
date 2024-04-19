@@ -90,11 +90,13 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 
 			if config.Verbose {
 
-				// the TrimRight at the end is to make sure we don't have a dangling ] on a single line
-				sb.WriteString(fmt.Sprintf("        Comparison: %s. Expected:[%s] Actual: [%s]\n",
-					test_result.Source.Expects.ExpectationType,
-					test_result.Source.Expects.Target,
-					strings.TrimRight(test_result.Actual, "\r\n")))
+				for _, expectation := range test_result.Source.Expects {
+					// the TrimRight at the end is to make sure we don't have a dangling ] on a single line
+					sb.WriteString(fmt.Sprintf("        Comparison: %s. Expected:[%s] Actual: [%s]\n",
+						expectation.ExpectationType,
+						expectation.Target,
+						strings.TrimRight(test_result.Actual, "\r\n")))
+				}
 
 				if test_result.Source.Input.InputType == "json-file" {
 					sb.WriteString(fmt.Sprintf("        Input File: %s\n", test_result.Source.Input.Value))

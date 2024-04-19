@@ -136,7 +136,7 @@ func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestS
 			log.Fatal("Unknown testResult Status for test %s : %s", testResult.Source, testResult.Status)
 		}
 
-		log.Debug("Expectations: type: %s, value: %s", test.Expects.ExpectationType, test.Expects.Target)
+		log.Debug("Expectations: type: %s, value: %s", test.Expects[0].ExpectationType, test.Expects[0].Target)
 
 		if len(results.Failed) > 0 && config.StopOnFailure {
 			log.Debug("Test failure detected and StopOnFailure is true, aborting...")

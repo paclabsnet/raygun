@@ -1,0 +1,49 @@
+suite: example3
+description: This is an example raygun suite
+opa:
+  # path: /usr/local/bin/opa
+  bundle-path: example3-bundle.tar.gz
+tests:
+  - name: ex-test1
+    description: this is the description for ex-test1
+    decision-path:  /v1/data/example3
+    expects:
+      - substring: '"allow":true'
+    input:
+      type: inline
+      value: >
+       { "name" : "ray" }
+
+  - name: ex-test2
+    description: test2
+    decision-path:  /v1/data/example3
+    expects:
+      - substring: '"allow":false'
+      - substring: not ray
+    input:
+      type: inline
+      value: >
+       { "name" : "not-ray" }
+  
+  
+  - name: ex-test3
+    description: test3
+    decision-path:  /v1/data/example3
+    expects:
+      substring: ' "allow" : true '
+    input:
+      type: inline
+      value: >
+       { "name" : "ray" }
+
+
+  - name: ex-test4
+    description: test4 - THIS IS SUPPOSED TO FAIL
+    decision-path:  /v1/data/example3
+    expects:
+      - substring: '"allow":true'
+      - substring: not ray
+    input:
+      type: inline
+      value: >
+       { "name" : "ray." }

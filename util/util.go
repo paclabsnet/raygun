@@ -119,3 +119,16 @@ func ReadFile(current_path string, target_file string) (string, error) {
 func RemoveAllWhitespace(str string) string {
 	return strings.ReplaceAll(str, " ", "")
 }
+
+/*
+ *  From StackOverflow - a simple function to return the last
+ *  element of a slice
+ */
+func Last[E any](s []E) (E, bool) {
+	if len(s) == 0 {
+		var zero E
+		return zero, false
+	}
+	return s[len(s)-1], true
+
+}

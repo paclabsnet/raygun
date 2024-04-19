@@ -4,9 +4,11 @@ Copyright © 2024 PACLabs
 package opa
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"raygun/config"
 	"raygun/log"
 	"time"
 )
@@ -52,6 +54,16 @@ func (opa *OpaRunner) Start() error {
 		log.Error("Unable to find %s on the path", commandToRun)
 		log.Error("Consider setting the environment variable RAYGUN_OPA_EXEC")
 		return err
+	}
+
+	root_directory_logpath := fmt.Sprintf("%c%s", os.PathSeparator, config.DEFAULT_LOG_FILE)
+
+	if opa.Config.LogPath == root_directory_logpath {
+		log.Error("The environment variable TMP is not defined. OPA logs will be written to your root directory")
+		log.Error("(which is almost certainly not what you want)")
+		log.Error("Consider setting the environment variable TMP (to /tmp, or some equivalent on Windows)")
+		log.Error("Or explicitly specifying the log path via command line arguments")
+		return errors.New("invalid opa log directory: " + opa.Config.LogPath)
 	}
 
 	log.Debug("OpaRunner.Start() - commandToRun: %s - absolute_path: %s", commandToRun, absolute_path)

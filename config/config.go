@@ -12,6 +12,7 @@ import (
 const STANDARD_OPA_PORT uint16 = 8181
 
 const DEFAULT_RAYGUN_EXTENSION = ".raygun"
+const DEFAULT_LOG_FILE = "raygun_opa.log"
 
 // const DEFAULT_RAYSUITE_EXTENSION = ".raysuite"
 
@@ -30,7 +31,7 @@ var ReportFormat = "text"
 var OpaPort = STANDARD_OPA_PORT
 var OpaExecutablePath = FindOpaExecutable("opa")
 var OpaBundlePath = "bundle.tar.gz"
-var OpaLogPath = filepath.FromSlash(fmt.Sprintf("%s/raygun_opa.log", os.Getenv("TMP")))
+var OpaLogPath = filepath.FromSlash(fmt.Sprintf("%s/%s", os.Getenv("TMP"), DEFAULT_LOG_FILE))
 
 // performance
 var PerformanceMetrics bool = false

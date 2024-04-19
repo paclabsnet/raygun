@@ -65,20 +65,26 @@ func (tr TestRunner) Evaluate(response string) (types.TestResult, error) {
 
 	result.Source = tr.Source
 
-	switch tr.Source.Expects.ExpectationType {
-	case "substring":
-		compressed_actual := util.RemoveAllWhitespace(response)
-		result.Actual = response
+	for _, expected := range tr.Source.Expects {
 
-		expected := util.RemoveAllWhitespace(tr.Source.Expects.Target)
-		if strings.Contains(compressed_actual, expected) {
-			result.Status = config.PASS
-		} else {
-			result.Status = config.FAIL
+		if result.Status != config.FAIL {
+
+			switch expected.ExpectationType {
+			case "substring":
+				compressed_actual := util.RemoveAllWhitespace(response)
+				result.Actual = response
+
+				expected := util.RemoveAllWhitespace(expected.Target)
+				if strings.Contains(compressed_actual, expected) {
+					result.Status = config.PASS
+				} else {
+					result.Status = config.FAIL
+				}
+
+			default:
+				log.Fatal("Unsupported ExpectationType for %s -> %s", tr.Source, expected.ExpectationType)
+			}
 		}
-
-	default:
-		log.Fatal("Unsupported ExpectationType for %s -> %s", tr.Source, tr.Source.Expects.ExpectationType)
 	}
 
 	return result, nil

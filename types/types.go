@@ -30,7 +30,7 @@ type TestRecord struct {
 	Suite        TestSuite
 	Name         string
 	Description  string
-	Expects      TestExpectation
+	Expects      []TestExpectation
 	Input        TestInput
 	DecisionPath string // the path part of the URL to use to call opa
 }
