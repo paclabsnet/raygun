@@ -121,3 +121,12 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 * the OPA team for inspiring me to write this, especially Anders Eknert
 * Inspiration : all the test tools I've used in the past
 
+
+## Future Features
+
+1. multiple expectations
+2. eopa support
+3. simplified expectation format
+4. jsonpath expectation
+5. input templates (so you can pull in environment variables and other external configuration (date, time, things like that))
+
