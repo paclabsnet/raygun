@@ -135,5 +135,4 @@ v0.1.14 - core functionality and some initial tests
 2. eopa support
 3. simplified expectation format
 4. jsonpath expectation
-5. input templates (so you can pull in environment variables and other external configuration (date, time, things like that))
 
