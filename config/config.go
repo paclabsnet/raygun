@@ -36,10 +36,16 @@ var OpaLogPath = filepath.FromSlash(fmt.Sprintf("%s/%s", os.Getenv("TMP"), DEFAU
 // performance
 var PerformanceMetrics bool = false
 
+// environment property substitution
+var Resolver *PropertyResolver
+
 // core concepts in a testing program
 const PASS = "pass"
 const FAIL = "fail"
 const SKIP = "skip"
+
+// I want to allow for java-style key/value property pairs to be read off of the command
+// line
 
 /**********************************************
  *  These are probably superfluous at this point  (2024-03-22)

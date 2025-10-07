@@ -13,14 +13,15 @@ import (
 var verbose bool
 var debug bool
 
-var Version = "v0.1.4"
+var Version = "v0.1.15"
+
+var resolver = config.NewPropertyResolver()
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "raygun",
 	Short: "A tool for testing .rego logic",
-	Long: `A tool for testing Rego rule logic, by executing a series of tests 
-	against it and verifying we get back the expected results`,
+	Long:  `A tool for testing Rego rule logic, by executing a series of tests against it and verifying we get back the expected results`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
@@ -36,6 +37,11 @@ func Execute() {
 }
 
 func init() {
+
+	// Parse -D flags before cobra processes the flags
+	// We need to filter them out from os.Args
+	filteredArgs := resolver.ParseFlags(os.Args[1:])
+
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
@@ -66,4 +72,9 @@ func init() {
 	// flags related to performance
 	rootCmd.PersistentFlags().BoolVar(&config.PerformanceMetrics, "perf-metrics", false, "Measure the time required for each call & report")
 
+	// Note: -D flags are handled by PropertyResolver before cobra sees them
+	rootCmd.SetHelpTemplate(rootCmd.HelpTemplate() +
+		"\nDynamic Properties:\n  -D KEY=VALUE    Define property (repeatable, takes precedence over env vars)\n")
+
+	rootCmd.SetArgs(filteredArgs)
 }

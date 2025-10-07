@@ -81,6 +81,7 @@ var executeCmd = &cobra.Command{
 
 		config.Debug = debug
 		config.Verbose = verbose
+		config.Resolver = resolver
 
 		var entities = make([]string, 0)
 

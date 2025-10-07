@@ -1,6 +1,9 @@
 # raygun
 
-Current Version: 0.1.4
+Current Version: 0.1.15
+
+## Latest Update
+- added support for ```${KEY}``` style substitutions in the input documents, either at the command line with ```-Dkey=value``` or via setting the appropriate environment variables
 
 ## What does this project do?
    Raygun is a tool for testing Rego policy against OPA servers in a way that resembles a "real-world" usage.  Specifically:
@@ -83,7 +86,7 @@ raygun execute --verbose  sample/*/*.raygun
 ### Running the tests
 
 ```
-go test  raygun/util
+go test  raygun/util  raygun/config
 ```
 
 
@@ -115,6 +118,10 @@ See also the list of [contributors](https://github.com/paclabsnet/raygun/contrib
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Previous Updates
+v0.1.14 - core functionality and some initial tests
+
 
 ## Acknowledgments
 

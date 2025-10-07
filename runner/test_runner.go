@@ -29,13 +29,13 @@ func (tr TestRunner) Post() (string, error) {
 
 	postUrl := fmt.Sprintf("http://localhost:%d%s", config.OpaPort, tr.Source.DecisionPath)
 
-	bodyString := ""
+	preExpansionInput := ""
 
 	switch tr.Source.Input.InputType {
 	case "inline":
 
 		// read the JSON data directly from the .raygun file
-		bodyString = optionally_add_input_key(tr.Source.Input.Value)
+		preExpansionInput = optionally_add_input_key(tr.Source.Input.Value)
 	case "json-file":
 
 		// read the JSON data from a file
@@ -45,11 +45,15 @@ func (tr TestRunner) Post() (string, error) {
 			return "", err
 		}
 
-		bodyString = optionally_add_input_key(tmp)
+		preExpansionInput = optionally_add_input_key(tmp)
 
 	default:
 		return "", fmt.Errorf("unsupported input type: %s", tr.Source.Input.InputType)
 	}
+
+	// substitute any ${} tokens in the input with their appropriate values
+	// which are pulled either from properties or from the environment
+	bodyString := config.Resolver.ExpandProperties(preExpansionInput)
 
 	return _post(postUrl, bodyString)
 

@@ -1,0 +1,39 @@
+suite: example4
+description: This is an example raygun suite. This example uses property substition, so you'll have to either set the RAYGUN_NAME environment variable to 'ray' or set it on the command line with -DRAYGUN_NAME=ray
+opa:
+  # path: /usr/local/bin/opa
+  bundle-path: example4-bundle.tar.gz
+tests:
+  - name: ex-test1
+    description: this is the description for ex-test1
+    decision-path:  /v1/data/example4
+    expects:
+      type: substring
+      target: '"allow":true'
+    input:
+      type: inline
+      value: >
+       { "name" : "${RAYGUN_NAME}" }
+
+  - name: ex-test2
+    description: test2
+    decision-path:  /v1/data/example4
+    expects:
+      type: substring
+      target: '"allow":false'
+    input:
+      type: inline
+      value: >
+       { "name" : "${RAYGUN_OOPS}" }
+  
+  - name: ex-test3
+    description: this is the description for ex-test3
+    decision-path:  /v1/data/example4
+    expects:
+      type: substring
+      target: '"allow":true'
+    input:
+      type: inline
+      value: >
+       { "name" : "${RAYGUN_NAME}", "delegate" : "${RAYGUN_DELEGATE}" }
+ 
