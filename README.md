@@ -100,7 +100,7 @@ go test  raygun/util  raygun/config
 
    for simple questions/suggestions/etc: email info@paclabs.io
 
-   if you'd like formal support: email sales@paclabs.io
+   if you'd like formal support: email support@paclabs.io
 
 
 
