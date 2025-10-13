@@ -125,5 +125,5 @@ type Decision struct {
 	DecisionId string          `json:"id"`
 	Path       string          `json:"path"`
 	Input      json.RawMessage `json:"input"`
-	Result     string          `json:"result"`
+	Result     interface{}     `json:"result"`
 }

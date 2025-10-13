@@ -49,11 +49,14 @@ func (parser *JsonParser) Parse(json_filename string) ([]types.TestSuite, error)
 
 		test := types.TestRecord{Suite: suite}
 
-		test.DecisionPath = decision.Path
+		test.DecisionPath = "/v1/data/" + decision.Path
 		test.Name = decision.DecisionId
 		test.Input = createTestInput("inline", string(decision.Input))
-		test.ExpectData = createTestExpectation(decision.Result)
-		test.Description = fmt.Sprintf("%s (%s) -> %s", test.DecisionPath, test.Input.Value, test.ExpectData[0].Target)
+
+		resultStr := fmt.Sprintf("%v", decision.Result)
+
+		test.ExpectData = createTestExpectation(resultStr)
+		test.Description = fmt.Sprintf("{\"path\":\"%s\",\"input\":%s,\"result\":%s}", test.DecisionPath, test.Input.Value, test.ExpectData[0].Target)
 
 		suite.Tests = append(suite.Tests, test)
 	}

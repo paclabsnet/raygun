@@ -33,6 +33,8 @@ func (tr TestRunner) Post() (string, error) {
 	//	postUrl := fmt.Sprintf("http://localhost:%d%s", config.OpaPort, tr.Source.DecisionPath)
 	postUrl := fmt.Sprintf("%s%s", tr.Source.Suite.Opa.GetAgentUrl(), tr.Source.DecisionPath)
 
+	log.Debug("postUrl: %s", postUrl)
+
 	preExpansionInput := ""
 
 	switch tr.Source.Input.InputType {
