@@ -1,0 +1,7 @@
+[
+
+  {"decision_id":"1","path":"/v1/data/example6/allow","input":{"method":"GET","name":"ray"}, "result":"true"},
+  {"decision_id":"2","path":"/v1/data/example6/allow","input":{"method":"GET","name":"not ray"}, "result":"false"},
+  {"decision_id":"3","path":"/v1/data/example6/allow","input":{"method":"GET","name":"RAY"}, "result":"true"},
+  {"decision_id":"4","path":"/v1/data/example6/allow","input":{"method":"PUT","name":"RAY"}, "result":"false"}
+]

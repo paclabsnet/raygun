@@ -29,6 +29,9 @@ func NewSuiteRunner(suite_list []types.TestSuite) SuiteRunner {
 	return suiteRunner
 }
 
+/*
+ *
+ */
 func (suiteRunner *SuiteRunner) Execute() (types.CombinedResult, error) {
 
 	results := types.CombinedResult{}
@@ -90,6 +93,10 @@ func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestS
 	 */
 	for _, test := range suite.Tests {
 
+		// this allows the test to refer to jwt config from the suite
+		// which will make test maintenance a little easier
+		test.Suite = suite
+
 		testRunner := NewTestRunner(test)
 
 		testResult := types.TestResult{Source: test}
@@ -99,7 +106,9 @@ func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestS
 
 		var eval_err error = nil
 
-		if network_err != nil {
+		if test.Skip {
+			testResult.Status = config.SKIP
+		} else if network_err != nil {
 			if config.SkipOnNetworkError {
 				testResult.Status = config.SKIP
 			} else {
@@ -111,6 +120,8 @@ func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestS
 			testEndTime := time.Now()
 
 			testResult, eval_err = testRunner.Evaluate(response)
+
+			log.Debug("test: %s result: %v", test, testResult)
 
 			/*
 			 *  This shouldn't happen, so its a fairly serious problem
@@ -136,7 +147,7 @@ func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestS
 			log.Fatal("Unknown testResult Status for test %s : %s", testResult.Source, testResult.Status)
 		}
 
-		log.Debug("Expectations: type: %s, value: %s", test.Expects[0].ExpectationType, test.Expects[0].Target)
+		log.Debug("Expectations: type: %s, value: %s", test.ExpectData[0].ExpectationType, test.ExpectData[0].Target)
 
 		if len(results.Failed) > 0 && config.StopOnFailure {
 			log.Debug("Test failure detected and StopOnFailure is true, aborting...")
@@ -214,8 +225,23 @@ func (suiteRunner SuiteRunner) DifferentOpaConfigurationThanLast(suite types.Tes
 		return true
 	}
 
+	if suiteRunner.LastSuite.Opa.OpaPort != suite.Opa.OpaPort {
+		log.Debug("DifferentOpaConfigurationThanLast: Last Suite opaPort: %d is different from the new port: %d", suiteRunner.LastSuite.Opa.OpaPort, suite.Opa.OpaPort)
+		return true
+	}
+
 	if suiteRunner.LastSuite.Opa.OpaPath != suite.Opa.OpaPath {
 		log.Debug("DifferentOpaConfigurationThanLast: Last Suite opaPath: %s is different from the new opaPath: %s", suiteRunner.LastSuite.Opa.OpaPath, suite.Opa.OpaPath)
+		return true
+	}
+
+	if suiteRunner.LastSuite.Opa.BundleUrl != suite.Opa.BundleUrl {
+		log.Debug("DifferentOpaConfigurationThanLast: Last Suite opa bundle url: %s is different from the new bundle url: %s", suiteRunner.LastSuite.Opa.BundleUrl, suite.Opa.BundleUrl)
+		return true
+	}
+
+	if suiteRunner.LastSuite.Opa.EndpointUrl != suite.Opa.EndpointUrl {
+		log.Debug("DifferentOpaConfigurationThanLast: Last Suite opa endpoint url: %s is different from the new endpoint url: %s", suiteRunner.LastSuite.Opa.EndpointUrl, suite.Opa.EndpointUrl)
 		return true
 	}
 

@@ -71,7 +71,7 @@ func generate_aggregate_test_reports(test_list []types.TestResult) []interface{}
 
 			report["actual"] = strings.TrimRight(test_result.Actual, "\r\n")
 
-			for _, expectation := range test_result.Source.Expects {
+			for _, expectation := range test_result.Source.ExpectData {
 				comparison_type_array = append(comparison_type_array, expectation.ExpectationType)
 				expected_value_array = append(expected_value_array, expectation.Target)
 			}

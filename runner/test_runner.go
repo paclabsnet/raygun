@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"raygun/config"
+	"raygun/jwt"
 	"raygun/log"
 	"raygun/types"
 	"raygun/util"
@@ -25,9 +26,12 @@ func NewTestRunner(test types.TestRecord) TestRunner {
 	return testRunner
 }
 
+var jwtBuilder jwt.JWTBuilder = jwt.NewJWTBuilder()
+
 func (tr TestRunner) Post() (string, error) {
 
-	postUrl := fmt.Sprintf("http://localhost:%d%s", config.OpaPort, tr.Source.DecisionPath)
+	//	postUrl := fmt.Sprintf("http://localhost:%d%s", config.OpaPort, tr.Source.DecisionPath)
+	postUrl := fmt.Sprintf("%s%s", tr.Source.Suite.Opa.GetAgentUrl(), tr.Source.DecisionPath)
 
 	preExpansionInput := ""
 
@@ -51,6 +55,27 @@ func (tr TestRunner) Post() (string, error) {
 		return "", fmt.Errorf("unsupported input type: %s", tr.Source.Input.InputType)
 	}
 
+	// we only process the JWT data if there's anything present to process, otherwise
+	// it's safe to ignore
+	if tr.Source.Jwt.Active || (len(tr.Source.Jwt.Claims.Custom) > 0) {
+
+		jwt_string, err := jwtBuilder.Generate(tr.Source.Suite, tr.Source.Jwt)
+
+		if err != nil {
+			return "", err
+		}
+
+		log.Debug("Test: %s Generated JWT: %s", tr.Source.Name, jwt_string)
+
+		// by convention, we'll put the JWT into a property named
+		// RAYGUN_GENERATED_JWT
+		// so the user can just use ${RAYGUN_GENERATED_JWT} in their input
+		// document
+		if jwt_string != "" {
+			config.Resolver.AddProperty("RAYGUN_GENERATED_JWT", jwt_string)
+		}
+	}
+
 	// substitute any ${} tokens in the input with their appropriate values
 	// which are pulled either from properties or from the environment
 	bodyString := config.Resolver.ExpandProperties(preExpansionInput)
@@ -69,7 +94,9 @@ func (tr TestRunner) Evaluate(response string) (types.TestResult, error) {
 
 	result.Source = tr.Source
 
-	for _, expected := range tr.Source.Expects {
+	log.Debug("Expectations: %v . Actual: %s", tr.Source.ExpectData, response)
+
+	for _, expected := range tr.Source.ExpectData {
 
 		if result.Status != config.FAIL {
 

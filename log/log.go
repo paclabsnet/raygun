@@ -39,6 +39,13 @@ func Warning(format string, a ...any) {
 	}
 }
 
+func Warn(format string, a ...any) {
+	if config.Warning {
+		warn_msg := fmt.Sprintf(format, a...)
+		fmt.Printf("WARN : %s\n", warn_msg)
+	}
+}
+
 func Error(format string, a ...any) {
 	if config.Error {
 		err_msg := fmt.Sprintf(format, a...)

@@ -13,7 +13,10 @@ import (
 var verbose bool
 var debug bool
 
-var Version = "v0.1.15"
+// 0.1 - basic core stuff
+// 0.2 - adding support jwt and remote bundles
+// 0.3 - adding the backtest command
+var Version = "v0.3.0"
 
 var resolver = config.NewPropertyResolver()
 
@@ -64,6 +67,17 @@ func init() {
 		config.FindOpaExecutable("opa"),
 		"OPA executable. Consider env var: RAYGUN_OPA_EXEC")
 	rootCmd.PersistentFlags().StringVar(&config.OpaLogPath, "opa-log", config.OpaLogPath, "Location of the OPA log file")
+	rootCmd.PersistentFlags().Uint16Var(&config.OpaPort, "opa-port", config.OpaPort, "The port upon which OPA is listening")
+
+	// specify a remote server where the bundle can be found
+	rootCmd.PersistentFlags().StringVar(&config.OpaBundleUrl, "opa-bundle-url", config.OpaBundleUrl, "URL of a hosted OPA bundle")
+	// specify the endpoint of an OPA that is already running, so we don't have to start one
+	rootCmd.PersistentFlags().StringVar(&config.OpaEndpointUrl, "opa-url", config.OpaEndpointUrl, "URL of an existing OPA that we will use for our tests")
+
+	//
+	// flags related to the decision logs
+	//
+	rootCmd.PersistentFlags().StringVar(&config.DecisionFile, "decision-file", config.DecisionFile, "Location of the file containing the json array of decision logs for backtest")
 
 	// flags related to the output format
 	rootCmd.PersistentFlags().StringVar(&config.ReportFormat, "report-format",

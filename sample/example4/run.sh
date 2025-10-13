@@ -12,5 +12,5 @@ echo "RAYGUN_DELEGATE=bob raygun execute -D RAYGUN_NAME=ray"
 echo
 echo
 
-RAYGUN_DELEGATE=bob raygun execute -D RAYGUN_NAME=ray
+RAYGUN_DELEGATE=bob raygun -v -d execute -D RAYGUN_NAME=ray
 

@@ -52,7 +52,7 @@ func (pr *PropertyResolver) AddProperty(key string, value string) {
 }
 
 // Resolve with precedence: command line flags > env vars > original token
-func (pr *PropertyResolver) Resolve(key string) string {
+func (pr *PropertyResolver) CreatePropertyMap(key string) string {
 	// Check -D properties first
 	if val, ok := pr.props[key]; ok {
 		return val
@@ -67,5 +67,5 @@ func (pr *PropertyResolver) Resolve(key string) string {
 
 // Replace all tokens in a string
 func (pr *PropertyResolver) ExpandProperties(tokenizedStr string) string {
-	return os.Expand(tokenizedStr, pr.Resolve)
+	return os.Expand(tokenizedStr, pr.CreatePropertyMap)
 }

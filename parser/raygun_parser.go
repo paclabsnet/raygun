@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 PACLabs
+Copyright © 2025 PACLabs
 */
 package parser
 
@@ -7,9 +7,9 @@ package parser
  *   Parses the .raygun files (YAML) and validates that they have the information
  *   we need to create test suites and cases
  *
- *   I elected for a map-based approach instead of using the automatic marshall/unmarshall
- *   of structures, because I wanted to be able to do more in-depth validation.  It also
- *
+ *   Originally, I used a map structure, but the ability to include metadata in
+ *   the types makes it much easier to parse, which makes changes much easier
+ *   so except in a few places, I am parsing the yaml using type metastructure
  */
 
 import (
@@ -47,23 +47,69 @@ func (parser *RaygunParser) Parse(raygun_file_list []string) ([]types.TestSuite,
 
 	suite_list := make([]types.TestSuite, 0)
 
-	for _, file := range raygun_file_list {
+	for _, raygun_filename := range raygun_file_list {
 
-		suite, err := parser.ParseSuiteFile(file)
+		data, err := os.ReadFile(raygun_filename)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read config file: %w", err)
+		}
+
+		suite := CreateEmptySuite(raygun_filename)
+
+		err = yaml.Unmarshal(data, &suite)
+
+		var skip bool = false
 
 		if err != nil {
 			if !parser.SkipOnParseError {
-				log.Fatal("Parse error on suite file: %s [%v]", file, err)
+				log.Fatal("Parse error on suite file: %s [%v]", raygun_filename, err)
+				// this will exit, no need to handle this elegantly
 			} else {
-				log.Warning("Parse error on suite file: %s -> %v .. skipping", file, err)
+				log.Warning("Parse error on suite file: %s -> %v .. skipping", raygun_filename, err)
+				skip = true
 			}
-		} else {
+		}
+
+		log.Debug("RaygunParser.Parse: %v", suite)
+
+		err = parser.parseExpectations(&suite)
+
+		if err != nil {
+			if !parser.SkipOnParseError {
+				log.Fatal("Parse error on suite file: %s [%v]", raygun_filename, err)
+			} else {
+				log.Warning("Parse error on suite file: %s -> %v .. skipping", raygun_filename, err)
+				skip = true
+			}
+		}
+
+		if !skip {
 			suite_list = append(suite_list, suite)
 		}
 
 	}
 
 	return suite_list, nil
+}
+
+func (parser *RaygunParser) parseExpectations(suite *types.TestSuite) error {
+
+	for i := range suite.Tests {
+
+		// this was an interesting and annoying bug - I thought
+		// for _, tr := range suite.Tests would give me the record
+		// so I could pass it by reference to yamlToExpectationsMap
+		//
+		// but instead, it appeared to make a copy, so the parsing data was lost
+
+		err := parser.yamlToExpectationsMap(&suite.Tests[i], suite.Tests[i].ExpectsMap)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }
 
 /*
@@ -132,7 +178,7 @@ func (p RaygunParser) yamlToSuite(suite *types.TestSuite, tree map[string]interf
 	// values
 	suite.Opa.OpaPort = config.OpaPort
 	suite.Opa.OpaPath = config.OpaExecutablePath
-	suite.Opa.BundlePath = config.OpaBundlePath
+	suite.Opa.BundlePath = config.OpaBundleUrl
 	suite.Opa.LogPath = config.OpaLogPath
 
 	//
@@ -303,7 +349,7 @@ func (p RaygunParser) yamlToExpectationsArray(test *types.TestRecord, tree_array
  */
 func (p RaygunParser) yamlToExpectationsMap(test *types.TestRecord, tree map[string]interface{}) error {
 
-	test.Expects = append(test.Expects, types.TestExpectation{})
+	test.ExpectData = append(test.ExpectData, types.TestExpectation{})
 
 	for _, k := range util.SortMapKeys(tree) {
 
@@ -313,7 +359,7 @@ func (p RaygunParser) yamlToExpectationsMap(test *types.TestRecord, tree map[str
 		case "type":
 			if util.IsString(v) {
 
-				test.Expects[len(test.Expects)-1].ExpectationType = v.(string)
+				test.ExpectData[len(test.ExpectData)-1].ExpectationType = v.(string)
 
 			} else {
 				return fmt.Errorf("invalid Expects.ExpectationType value: %v, expecting string", v)
@@ -321,15 +367,15 @@ func (p RaygunParser) yamlToExpectationsMap(test *types.TestRecord, tree map[str
 		case "target":
 			if util.IsString(v) {
 
-				test.Expects[len(test.Expects)-1].Target = v.(string)
+				test.ExpectData[len(test.ExpectData)-1].Target = v.(string)
 			} else {
 				return fmt.Errorf("invalid Expects.Target value: %v, expecting string", v)
 			}
 		case "substring":
 			if util.IsString(v) {
 
-				test.Expects[len(test.Expects)-1].ExpectationType = "substring"
-				test.Expects[len(test.Expects)-1].Target = v.(string)
+				test.ExpectData[len(test.ExpectData)-1].ExpectationType = "substring"
+				test.ExpectData[len(test.ExpectData)-1].Target = v.(string)
 
 			} else {
 				return fmt.Errorf("invalid substring value: %v, expecting string", v)
@@ -337,7 +383,10 @@ func (p RaygunParser) yamlToExpectationsMap(test *types.TestRecord, tree map[str
 		default:
 			return fmt.Errorf("unknown/unsupported 'expects' section key: %s", k)
 		}
+
 	}
+
+	// log.Debug("Test %s ExpectData array: %v", test.Name, test.ExpectData)
 
 	return nil
 }

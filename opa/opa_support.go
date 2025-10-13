@@ -17,14 +17,25 @@ import (
  *  The configuration we need to start OPA
  */
 type OpaConfig struct {
-	OpaPort    uint16
-	OpaPath    string
-	BundlePath string
-	LogPath    string
+	OpaPort     uint16 `yaml:"port,omitempty"`
+	OpaPath     string `yaml:"path,omitempty"`
+	BundlePath  string `yaml:"bundle-path"`
+	LogPath     string `yaml:"log-path"`
+	ConfigFile  string `yaml:"config-file,omitempty"`
+	BundleUrl   string `yaml:"bundle-url"`
+	EndpointUrl string `yaml:"endpoint-url"`
+}
+
+func (oc OpaConfig) GetAgentUrl() string {
+	if oc.EndpointUrl != "" {
+		return oc.EndpointUrl
+	} else {
+		return fmt.Sprintf("http://localhost:%d", oc.OpaPort)
+	}
 }
 
 func (oc OpaConfig) String() string {
-	return fmt.Sprintf("exec: %s, bundle: %s, logs: %s", oc.OpaPath, oc.BundlePath, oc.LogPath)
+	return fmt.Sprintf("exec: %s, config: %s, bundle: %s, logs: %s", oc.OpaPath, oc.ConfigFile, oc.BundlePath, oc.LogPath)
 }
 
 /*
@@ -32,6 +43,7 @@ func (oc OpaConfig) String() string {
  */
 type OpaRunner struct {
 	Config  OpaConfig
+	Remote  bool
 	Process *os.Process
 }
 
@@ -45,6 +57,12 @@ func NewOpaRunner(config OpaConfig) OpaRunner {
 }
 
 func (opa *OpaRunner) Start() error {
+
+	if opa.Config.EndpointUrl != "" {
+		log.Debug("Existing OPA Endpoint specified, no need to start one")
+		opa.Remote = true
+		return nil
+	}
 
 	commandToRun := opa.Config.OpaPath
 
@@ -68,7 +86,13 @@ func (opa *OpaRunner) Start() error {
 
 	log.Debug("OpaRunner.Start() - commandToRun: %s - absolute_path: %s", commandToRun, absolute_path)
 
-	args := []string{commandToRun, "run", "--server", "-b", opa.Config.BundlePath}
+	var args []string
+
+	if opa.Config.ConfigFile != "" {
+		args = []string{commandToRun, "run", "--server", "-b", opa.Config.BundlePath, "--config-file", opa.Config.ConfigFile}
+	} else {
+		args = []string{commandToRun, "run", "--server", "-b", opa.Config.BundlePath}
+	}
 
 	log.Debug("OpaRunner.Start() - arg string: %v", args)
 
@@ -101,6 +125,11 @@ func (opa *OpaRunner) Start() error {
 }
 
 func (opa *OpaRunner) Stop() error {
+
+	if opa.Remote {
+		log.Debug("OpaRunner:Stop() - Agent is running remotely, nothings gonna stop us now")
+		return nil
+	}
 
 	if opa.Process == nil {
 		return fmt.Errorf("OpaRunner:Stop - no process found, can't stop, won't stop")

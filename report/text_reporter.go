@@ -90,7 +90,7 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 
 			if config.Verbose {
 
-				for _, expectation := range test_result.Source.Expects {
+				for _, expectation := range test_result.Source.ExpectData {
 					// the TrimRight at the end is to make sure we don't have a dangling ] on a single line
 					sb.WriteString(fmt.Sprintf("        Comparison: %s. Expected:[%s] Actual: [%s]\n",
 						expectation.ExpectationType,

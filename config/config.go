@@ -13,6 +13,8 @@ const STANDARD_OPA_PORT uint16 = 8181
 
 const DEFAULT_RAYGUN_EXTENSION = ".raygun"
 const DEFAULT_LOG_FILE = "raygun_opa.log"
+const DEFAULT_BUNDLE_URL = ""
+const DEFAULT_DECISION_ARRAY_FILE = "backtest.json"
 
 // const DEFAULT_RAYSUITE_EXTENSION = ".raysuite"
 
@@ -30,8 +32,16 @@ var ReportFormat = "text"
 
 var OpaPort = STANDARD_OPA_PORT
 var OpaExecutablePath = FindOpaExecutable("opa")
-var OpaBundlePath = "bundle.tar.gz"
+
+// var OpaBundlePath = "bundle.tar.gz"
 var OpaLogPath = filepath.FromSlash(fmt.Sprintf("%s/%s", os.Getenv("TMP"), DEFAULT_LOG_FILE))
+var OpaBundleUrl = "file:///bundle.tar.gz"
+var OpaEndpointUrl = ""
+
+// I'm not sure if there's a more elegant way to handle this, it's a local tmp directory for now
+// I'm overcomplicating this, just use the filename, if the caller wants to do something
+// sophisticated, that's a problem to be solved later
+var DecisionFile = DEFAULT_DECISION_ARRAY_FILE
 
 // performance
 var PerformanceMetrics bool = false

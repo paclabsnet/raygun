@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 PACLabs
+Copyright © 2025 PACLabs
 */
 package cmd
 
@@ -61,6 +61,8 @@ import (
 	--opa-exec  = location of opa executable . If not specified, look up RAYGUN_OPA_EXEC
 	--opa-bundle-path = location of bundle file (includes filename)
 	--opa-log  = location of opa log file  ($TMP/raygun-opa.log for now)
+	--opa-bundle-url = location of a web-hosted OPA bundle
+	--opa-endpoint-url = location of an existig OPA we'll use instead of starting one.
 
 	--stop-on-failure       (continue on fail is default)
 	--skip-on-parse-error   (stop immediately on parse error is default)
@@ -83,6 +85,10 @@ var executeCmd = &cobra.Command{
 		config.Verbose = verbose
 		config.Resolver = resolver
 
+		/*
+		 *  Find all of the directories and/or files specified on the command line.
+		 *  If nothing is specified, add the current directory
+		 */
 		var entities = make([]string, 0)
 
 		if len(args) < 1 {
