@@ -29,15 +29,15 @@ func (suite TestSuite) String() string {
 }
 
 type TestRecord struct {
-	Suite        TestSuite              `yaml:"suite"`
-	Name         string                 `yaml:"name"`
-	Skip         bool                   `yaml:"skip,omitempty"`
-	Description  string                 `yaml:"description,omitempty"`
-	ExpectsMap   map[string]interface{} `yaml:"expects"`
-	Input        TestInput              `yaml:"input"`
-	DecisionPath string                 `yaml:"decision-path"` // the path part of the URL to use to call opa
-	Jwt          TestJwt                `yaml:"jwt,omitempty"` // the structure containing the parts of the JWT
-	ExpectData   []TestExpectation      // we parse ExpectsMap to create this
+	Suite        TestSuite         `yaml:"suite"`
+	Name         string            `yaml:"name"`
+	Skip         bool              `yaml:"skip,omitempty"`
+	Description  string            `yaml:"description,omitempty"`
+	ExpectsObj   interface{}       `yaml:"expects"`
+	Input        TestInput         `yaml:"input"`
+	DecisionPath string            `yaml:"decision-path"` // the path part of the URL to use to call opa
+	Jwt          TestJwt           `yaml:"jwt,omitempty"` // the structure containing the parts of the JWT
+	ExpectData   []TestExpectation // we parse ExpectsMap to create this
 }
 
 func (tr TestRecord) String() string {

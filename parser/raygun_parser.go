@@ -102,9 +102,23 @@ func (parser *RaygunParser) parseExpectations(suite *types.TestSuite) error {
 		//
 		// but instead, it appeared to make a copy, so the parsing data was lost
 
-		err := parser.yamlToExpectationsMap(&suite.Tests[i], suite.Tests[i].ExpectsMap)
-		if err != nil {
-			return err
+		if util.IsArray(suite.Tests[i].ExpectsObj) {
+
+			expects_array := suite.Tests[i].ExpectsObj.([]interface{})
+
+			for _, expects_map := range expects_array {
+				err := parser.yamlToExpectationsMap(&suite.Tests[i], expects_map.(map[string]interface{}))
+				if err != nil {
+					return err
+				}
+			}
+
+		} else if util.IsMap(suite.Tests[i].ExpectsObj) {
+			expects_map := suite.Tests[i].ExpectsObj.(map[string]interface{})
+			err := parser.yamlToExpectationsMap(&suite.Tests[i], expects_map)
+			if err != nil {
+				return err
+			}
 		}
 
 	}
@@ -300,6 +314,7 @@ func (p RaygunParser) yamlToTest(suite *types.TestSuite, tree map[string]interfa
 					return err
 				}
 			} else if util.IsMap(v) {
+
 				err := p.yamlToExpectationsMap(&test, v.(map[string]interface{}))
 				if err != nil {
 					return err
@@ -342,18 +357,19 @@ func (p RaygunParser) yamlToExpectationsArray(test *types.TestRecord, tree_array
 	}
 
 	return nil
+
 }
 
 /*
  * Process a single TestExpectations map
  */
-func (p RaygunParser) yamlToExpectationsMap(test *types.TestRecord, tree map[string]interface{}) error {
+func (p RaygunParser) yamlToExpectationsMap(test *types.TestRecord, expectations_map map[string]interface{}) error {
 
 	test.ExpectData = append(test.ExpectData, types.TestExpectation{})
 
-	for _, k := range util.SortMapKeys(tree) {
+	for _, k := range util.SortMapKeys(expectations_map) {
 
-		v := tree[k]
+		v := expectations_map[k]
 
 		switch k {
 		case "type":
@@ -385,7 +401,6 @@ func (p RaygunParser) yamlToExpectationsMap(test *types.TestRecord, tree map[str
 		}
 
 	}
-
 	// log.Debug("Test %s ExpectData array: %v", test.Name, test.ExpectData)
 
 	return nil

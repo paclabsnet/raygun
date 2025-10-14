@@ -16,7 +16,10 @@ var debug bool
 // 0.1 - basic core stuff
 // 0.2 - adding support jwt and remote bundles
 // 0.3 - adding the backtest command
-var Version = "v0.3.0"
+// 0.3.1 - added -b for bundle, even though it isn't necessary
+//   - also discovered you can 'fake' http request attributes and headers
+//     by properly adjusting the input documents. see sample/example7
+var Version = "v0.3.1"
 
 var resolver = config.NewPropertyResolver()
 
@@ -70,7 +73,8 @@ func init() {
 	rootCmd.PersistentFlags().Uint16Var(&config.OpaPort, "opa-port", config.OpaPort, "The port upon which OPA is listening")
 
 	// specify a remote server where the bundle can be found
-	rootCmd.PersistentFlags().StringVar(&config.OpaBundleUrl, "opa-bundle-url", config.OpaBundleUrl, "URL of a hosted OPA bundle")
+	rootCmd.PersistentFlags().StringVarP(&config.OpaBundleUrl, "opa-bundle-url", "b", config.OpaBundleUrl, "URL of a hosted OPA bundle")
+
 	// specify the endpoint of an OPA that is already running, so we don't have to start one
 	rootCmd.PersistentFlags().StringVar(&config.OpaEndpointUrl, "opa-url", config.OpaEndpointUrl, "URL of an existing OPA that we will use for our tests")
 

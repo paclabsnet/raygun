@@ -1,0 +1,92 @@
+suite: example7
+description: This is an example raygun suite
+opa:
+  # path: /usr/local/bin/opa
+  bundle-path: example7-bundle.tar.gz
+tests:
+  - name: ex-test1
+    description: how to send http request attributes
+    decision-path:  /v1/data/example7
+    expects:
+      - substring: '"allow":true'
+    input:
+      type: inline
+      value: >
+       { "attributes": { "request": { "http": { "method":"OPTIONS" }}}}
+
+  - name: ex-test2
+    description: test2 - more examples of request attributes
+    decision-path:  /v1/data/example7
+    expects:
+      - substring: '"allow":false'
+    input:
+      type: inline
+      value: >
+       { "attributes": { 
+         "request": { 
+          "http": { 
+            "method":"GET",
+            "path":"/headers" 
+       }}}}
+
+  - name: ex-test3
+    description: attributes and headers
+    decision-path:  /v1/data/example7
+    expects:
+      substring: ' "allow" : true '
+    input:
+      type: inline
+      value: >
+       { "attributes": { 
+         "request": { 
+          "http": { 
+            "method":"GET",
+            "path":"/headers",
+            "headers": {
+              "x-api-key":"demo-key-123"
+       }}}}}
+
+
+  - name: ex-test4
+    description: attributes and multiple headers
+    decision-path:  /v1/data/example7
+    expects:
+      substring: ' "allow" : true '
+    input:
+      type: inline
+      value: >
+       { "attributes": { 
+         "request": { 
+          "http": { 
+            "method":"GET",
+            "path":"/headers",
+            "headers": {
+              "x-api-key":"BAD-DEMO-KEY",
+              "x-ipaddress": "10.11.12.13"
+       }}}}}
+
+
+
+
+  - name: ex-test5
+    description: test5 - now with different headers
+    decision-path:  /v1/data/example7
+    expects:
+      - substring: '"allow":true'
+    input:
+      type: inline
+      value: >
+       { "attributes": { 
+         "request": { 
+          "http": { 
+            "method":"POST",
+            "path":"/post",
+            "headers": {
+              "x-user-role":"admin"
+       }}}}}
+
+
+
+
+
+
