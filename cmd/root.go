@@ -19,7 +19,7 @@ var debug bool
 // 0.3.1 - added -b for bundle, even though it isn't necessary
 //   - also discovered you can 'fake' http request attributes and headers
 //     by properly adjusting the input documents. see sample/example7
-var Version = "v0.3.1"
+var Version = "v0.3.2"
 
 var resolver = config.NewPropertyResolver()
 
