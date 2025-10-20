@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"raygun/log"
 	"raygun/types"
 )
 
@@ -54,6 +55,20 @@ func (parser *JsonParser) Parse(json_filename string) ([]types.TestSuite, error)
 		test.Input = createTestInput("inline", string(decision.Input))
 
 		resultStr := fmt.Sprintf("%v", decision.Result)
+
+		// we need a special case for maps
+		switch v := decision.Result.(type) {
+
+		case map[string]interface{}:
+			b, err := json.Marshal(v)
+			if err != nil {
+				return nil, err
+			}
+			log.Debug("decision.Result marshalls into: %s", string(b))
+			resultStr = string(b)
+		default:
+			log.Debug("decision.Result: %v is of type: %s", resultStr, v)
+		}
 
 		test.ExpectData = createTestExpectation(resultStr)
 		test.Description = fmt.Sprintf("{\"path\":\"%s\",\"input\":%s,\"result\":%s}", test.DecisionPath, test.Input.Value, test.ExpectData[0].Target)
