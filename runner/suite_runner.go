@@ -101,39 +101,43 @@ func (suiteRunner *SuiteRunner) ExecuteSuite(suite types.TestSuite) (types.TestS
 
 		testResult := types.TestResult{Source: test}
 
-		testStartTime := time.Now()
-		response, network_err := testRunner.Post()
-
-		var eval_err error = nil
-
 		if test.Skip {
 			testResult.Status = config.SKIP
-		} else if network_err != nil {
-			if config.SkipOnNetworkError {
-				testResult.Status = config.SKIP
-			} else {
-				log.Error("Failed to POST data to OPA: %s", network_err.Error())
-				return results, network_err
-			}
-
 		} else {
-			testEndTime := time.Now()
 
-			testResult, eval_err = testRunner.Evaluate(response)
+			testStartTime := time.Now()
+			response, network_err := testRunner.Post()
 
-			log.Debug("test: %s result: %v", test, testResult)
+			var eval_err error = nil
 
-			/*
-			 *  This shouldn't happen, so its a fairly serious problem
-			 */
-			if eval_err != nil {
-				log.Error("Failed to evaluate response from OPA: %s", eval_err.Error())
-				return results, eval_err
+			if network_err != nil {
+				if config.SkipOnNetworkError {
+					testResult.Status = config.SKIP
+				} else {
+					log.Error("Failed to POST data to OPA: %s", network_err.Error())
+					return results, network_err
+				}
+
+			} else {
+				testEndTime := time.Now()
+
+				testResult, eval_err = testRunner.Evaluate(response)
+
+				log.Debug("test: %s result: %v", test, testResult)
+
+				/*
+				 *  This shouldn't happen, so its a fairly serious problem (opa is producing bad JSON)
+				 */
+				if eval_err != nil {
+					log.Error("Failed to evaluate response from OPA: %s", eval_err.Error())
+					return results, eval_err
+				}
+
+				testResult.Start = testStartTime
+				testResult.End = testEndTime
+				testResult.Duration = testEndTime.Sub(testStartTime)
 			}
 
-			testResult.Start = testStartTime
-			testResult.End = testEndTime
-			testResult.Duration = testEndTime.Sub(testStartTime)
 		}
 
 		switch testResult.Status {
@@ -242,6 +246,11 @@ func (suiteRunner SuiteRunner) DifferentOpaConfigurationThanLast(suite types.Tes
 
 	if suiteRunner.LastSuite.Opa.EndpointUrl != suite.Opa.EndpointUrl {
 		log.Debug("DifferentOpaConfigurationThanLast: Last Suite opa endpoint url: %s is different from the new endpoint url: %s", suiteRunner.LastSuite.Opa.EndpointUrl, suite.Opa.EndpointUrl)
+		return true
+	}
+
+	if suiteRunner.LastSuite.Opa.OpaArgs != suite.Opa.OpaArgs {
+		log.Debug("DifferentOpaConfigurationThanLast: Last Suite opa args: %s is different from the new opa args: %s", suiteRunner.LastSuite.Opa.OpaArgs, suite.Opa.OpaArgs)
 		return true
 	}
 

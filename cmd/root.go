@@ -19,7 +19,14 @@ var debug bool
 // 0.3.1 - added -b for bundle, even though it isn't necessary
 //   - also discovered you can 'fake' http request attributes and headers
 //     by properly adjusting the input documents. see sample/example7
-var Version = "v0.3.2"
+//
+// 0.3.2 - I forget
+// 0.3.3 - added the ability to specify custom command line arguments for OPA
+//   - so you can take advantage of configuration file and other similar things
+//
+// 0.3.4 - fixed a bug where the skip instruction was still running the test, but
+//   - ignoring the outcome, which is not the spirit of that instruction
+var Version = "v0.3.4"
 
 var resolver = config.NewPropertyResolver()
 

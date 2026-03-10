@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"raygun/config"
 	"raygun/log"
+	"strings"
 	"time"
 )
 
@@ -24,6 +25,7 @@ type OpaConfig struct {
 	ConfigFile  string `yaml:"config-file,omitempty"`
 	BundleUrl   string `yaml:"bundle-url"`
 	EndpointUrl string `yaml:"endpoint-url"`
+	OpaArgs     string `yaml:"opa-args,omitempty"`
 }
 
 func (oc OpaConfig) GetAgentUrl() string {
@@ -92,6 +94,14 @@ func (opa *OpaRunner) Start() error {
 		args = []string{commandToRun, "run", "--server", "-b", opa.Config.BundlePath, "--config-file", opa.Config.ConfigFile}
 	} else {
 		args = []string{commandToRun, "run", "--server", "-b", opa.Config.BundlePath}
+	}
+
+	// Add additional OPA arguments if specified, with environment variable expansion
+	if opa.Config.OpaArgs != "" {
+		expandedArgs := config.Resolver.ExpandProperties(opa.Config.OpaArgs)
+		additionalArgs := strings.Fields(expandedArgs)
+		args = append(args, additionalArgs...)
+		log.Debug("OpaRunner.Start() - added OPA args: %v", additionalArgs)
 	}
 
 	log.Debug("OpaRunner.Start() - arg string: %v", args)
