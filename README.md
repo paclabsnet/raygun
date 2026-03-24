@@ -119,6 +119,9 @@ See also the list of [contributors](https://github.com/paclabsnet/raygun/contrib
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
+## Current Update
+v0.3.5 - added a 'smart verbose' flag (-s) which only shows verbose information for failed tests
+
 ## Previous Updates
 v0.1.14 - core functionality and some initial tests
 
@@ -135,4 +138,6 @@ v0.1.14 - core functionality and some initial tests
 2. eopa support
 3. simplified expectation format
 4. jsonpath expectation
+
+
 
