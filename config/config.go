@@ -20,6 +20,7 @@ const DEFAULT_DECISION_ARRAY_FILE = "backtest.json"
 
 var Debug bool = false
 var Verbose bool = false
+var SmartVerbose bool = false
 var Warning bool = true
 var Normal bool = true
 var Error bool = true
@@ -66,6 +67,10 @@ func SetDebug(v bool) {
 
 func SetVerbose(v bool) {
 	Verbose = v
+}
+
+func SetSmartVerbose(v bool) {
+	SmartVerbose = v
 }
 
 func SetNormal(v bool) {

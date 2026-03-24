@@ -75,20 +75,25 @@ func (tr TextReporter) Generate(results types.CombinedResult) string {
 			totalTestDurationMicroS += test_result.Duration.Microseconds()
 			totalFailedTestDurationMicroS += test_result.Duration.Microseconds()
 
+			// SmartVerbose - only verbose for failed tests
+			//                this makes it easier to get the details on failures without having to re-run the
+			//                 entire test suite
+			show_failure_details := config.Verbose || config.SmartVerbose // if either of these is true, this is true.
+
 			// test counts
 			failureCount++
 			totalCount++
 
 			sb.WriteString("\n")
 			sb.WriteString(fmt.Sprintf("      FAILED: %s\n", test_result.Source.Name))
-			if config.Verbose {
+			if show_failure_details {
 				sb.WriteString(fmt.Sprintf("        - %s\n", test_result.Source.Description))
 			}
 			if config.PerformanceMetrics {
 				sb.WriteString(fmt.Sprintf("        - Duration: %d Microseconds\n", test_result.Duration.Microseconds()))
 			}
 
-			if config.Verbose {
+			if show_failure_details {
 
 				for _, expectation := range test_result.Source.ExpectData {
 					// the TrimRight at the end is to make sure we don't have a dangling ] on a single line

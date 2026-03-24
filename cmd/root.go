@@ -26,7 +26,9 @@ var debug bool
 //
 // 0.3.4 - fixed a bug where the skip instruction was still running the test, but
 //   - ignoring the outcome, which is not the spirit of that instruction
-var Version = "v0.3.4"
+//
+// 0.3.5 - adding a flag so we can get verbose information, only for the tests that failed
+var Version = "v0.3.5"
 
 var resolver = config.NewPropertyResolver()
 
@@ -65,6 +67,7 @@ func init() {
 	// when this action is called directly.
 	//	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose")
+	rootCmd.PersistentFlags().BoolVarP(&config.SmartVerbose, "smart", "s", false, "Smart Verbose - only for failed tests")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Debug")
 	rootCmd.PersistentFlags().BoolVar(&config.StopOnFailure, "stop-on-failure", false, "Stop immediately at the first failed test")
 	rootCmd.PersistentFlags().BoolVar(&config.SkipOnNetworkError, "skip-on-network-failure", false, "skip tests that fail because of OPA connectivity issues")
